@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+Import('env')
+Import('env_modules')
+
+env_playfab = env_modules.Clone()
+
+playfab_sources = [
+    "register_types.cpp"
+]
+
+env_playfab.add_source_files(env.modules_sources, "*.cpp")
