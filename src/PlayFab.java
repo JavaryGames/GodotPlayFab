@@ -1,31 +1,27 @@
 package org.godotengine.godot;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.util.Log;
 
 import com.playfab.PlayFabErrors.*;
 import com.playfab.PlayFabSettings;
-import com.playfab.PlayFabClientModels;
-import com.playfab.PlayFabClientAPI;
-
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.FacebookSdkNotInitializedException;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
+import com.playfab.PlayFabClientModels.*;
+import com.playfab.PlayFabClientAPI.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
+
+import static com.playfab.PlayFabClientAPI.GetPlayerStatisticsAsync;
+import static com.playfab.PlayFabClientAPI.GetUserDataAsync;
+import static com.playfab.PlayFabClientAPI.LoginWithFacebookAsync;
+import static com.playfab.PlayFabClientAPI.UpdatePlayerStatistics;
+import static com.playfab.PlayFabClientAPI.UpdatePlayerStatisticsAsync;
+import static com.playfab.PlayFabClientAPI.UpdateUserDataAsync;
 
 public class PlayFab extends Godot.SingletonBase {
     private static boolean _running = true;
@@ -40,7 +36,7 @@ public class PlayFab extends Godot.SingletonBase {
 
     public PlayFab(Activity p_activity) {
         registerClass("PlayFab", new String[]{
-                "login", "facebook_login", "init", "setUserData", "getUserData"
+                "login", "facebook_login", "init", "setUserData", "getUserData", "getPlayerStatistic", "setPlayerStatistic"
         });
 
         activity = (Godot) p_activity;
@@ -53,12 +49,12 @@ public class PlayFab extends Godot.SingletonBase {
     }
 
     public void facebook_login(String access_token) {
-        PlayFabClientModels.LoginWithFacebookRequest request = new PlayFabClientModels.LoginWithFacebookRequest();
+        LoginWithFacebookRequest request = new LoginWithFacebookRequest();
         request.CreateAccount = true;
         request.AccessToken = access_token;
         request.TitleId = PlayFabSettings.TitleId;
 
-        FutureTask<PlayFabResult<com.playfab.PlayFabClientModels.LoginResult>> loginTask = PlayFabClientAPI.LoginWithFacebookAsync(request);
+        FutureTask<PlayFabResult<LoginResult>> loginTask = LoginWithFacebookAsync(request);
         loginTask.run();
         Log.d("PlayFab", "Running facebook_login " + access_token);
 
@@ -79,8 +75,8 @@ public class PlayFab extends Godot.SingletonBase {
         _running = true;
     }
 
-    private static void OnLoginComplete(FutureTask<PlayFabResult<com.playfab.PlayFabClientModels.LoginResult>> loginTask) {
-        PlayFabResult<com.playfab.PlayFabClientModels.LoginResult> result = null;
+    private static void OnLoginComplete(FutureTask<PlayFabResult<LoginResult>> loginTask) {
+        PlayFabResult<LoginResult> result = null;
         try {
             result = loginTask.get();
         } catch (Exception e) {
@@ -94,6 +90,8 @@ public class PlayFab extends Godot.SingletonBase {
             Log.d("PlayFab", "Error when logging in. Here's some debug information:");
             Log.d("PlayFab", error);
             GodotLib.calldeferred(instanceId, "playfab_login_failed", new Object[]{error});
+        } else {
+            GodotLib.calldeferred(instanceId, "playfab_login_failed", new Object[]{"Unkown error"});
         }
 
         _running = false;
@@ -114,11 +112,11 @@ public class PlayFab extends Godot.SingletonBase {
     }
 
     public void setUserData(final String key, final String value) {
-        PlayFabClientModels.UpdateUserDataRequest request = new PlayFabClientModels.UpdateUserDataRequest();
+        UpdateUserDataRequest request = new UpdateUserDataRequest();
         request.Data = new HashMap<String, String>() {{
             put(key, value);
         }};
-        final FutureTask<PlayFabResult<PlayFabClientModels.UpdateUserDataResult>> updateTask = PlayFabClientAPI.UpdateUserDataAsync(request);
+        final FutureTask<PlayFabResult<UpdateUserDataResult>> updateTask = UpdateUserDataAsync(request);
 
         threadPool.submit(new Runnable() {
             @Override
@@ -133,7 +131,7 @@ public class PlayFab extends Godot.SingletonBase {
                         return;
                     }
                 }
-                PlayFabResult<PlayFabClientModels.UpdateUserDataResult> result;
+                PlayFabResult<UpdateUserDataResult> result;
                 try {
                     result = updateTask.get();
                 } catch (Exception e) {
@@ -148,16 +146,18 @@ public class PlayFab extends Godot.SingletonBase {
                     Log.d("PlayFab", "Error in call, here's some debug information:");
                     Log.d("PlayFab", error);
                     GodotLib.calldeferred(instanceId, "set_user_data_failed", new Object[]{error});
+                } else {
+                    GodotLib.calldeferred(instanceId, "get_user_data_failed", new Object[]{"Unknown error"});
                 }
-            }
+             }
         });
     }
 
     public void getUserData(final String key) {
-        PlayFabClientModels.GetUserDataRequest request = new PlayFabClientModels.GetUserDataRequest();
+        GetUserDataRequest request = new GetUserDataRequest();
         request.Keys = new ArrayList<String>() {{ add(key); }};
 
-        final FutureTask<PlayFabResult<PlayFabClientModels.GetUserDataResult>> getTask = PlayFabClientAPI.GetUserDataAsync(request);
+        final FutureTask<PlayFabResult<GetUserDataResult>> getTask = GetUserDataAsync(request);
 
         threadPool.submit(new Runnable() {
             @Override
@@ -172,7 +172,7 @@ public class PlayFab extends Godot.SingletonBase {
                         return;
                     }
                 }
-                PlayFabResult<PlayFabClientModels.GetUserDataResult> result;
+                PlayFabResult<GetUserDataResult> result;
                 try {
                     result = getTask.get();
                 } catch (Exception e) {
@@ -182,7 +182,7 @@ public class PlayFab extends Godot.SingletonBase {
                 }
                 if (result != null && result.Result != null) {
                     Dictionary data = new Dictionary();
-                    for(Map.Entry<String, PlayFabClientModels.UserDataRecord> entry : result.Result.Data.entrySet()) {
+                    for(Map.Entry<String, UserDataRecord> entry : result.Result.Data.entrySet()) {
                         data.put(entry.getKey(), entry.getValue().Value);
                     }
                     GodotLib.calldeferred(instanceId, "get_user_data_succeed", new Object[]{data});
@@ -191,6 +191,98 @@ public class PlayFab extends Godot.SingletonBase {
                     Log.d("PlayFab", "Error in call, here's some debug information:");
                     Log.d("PlayFab", error);
                     GodotLib.calldeferred(instanceId, "get_user_data_failed", new Object[]{error});
+                } else {
+                    GodotLib.calldeferred(instanceId, "get_user_data_failed", new Object[]{"Unknown error"});
+                }
+            }
+        });
+    }
+
+    public void setPlayerStatistic(final String name, final int value) {
+        UpdatePlayerStatisticsRequest request = new UpdatePlayerStatisticsRequest();
+        request.Statistics = new ArrayList<StatisticUpdate>() {{
+            StatisticUpdate stat = new StatisticUpdate();
+            stat.StatisticName = name;
+            stat.Value = value;
+            add(stat);
+        }};
+
+        final FutureTask<PlayFabResult<UpdatePlayerStatisticsResult>> setTask = UpdatePlayerStatisticsAsync(request);
+
+        threadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                setTask.run();
+                while (!setTask.isDone()) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        Log.d("PlayFab", "Thread interrupted");
+                        GodotLib.calldeferred(instanceId, "set_player_statistic_failed", new Object[]{e.toString()});
+                        return;
+                    }
+                }
+                PlayFabResult<UpdatePlayerStatisticsResult> result;
+                try {
+                    result = setTask.get();
+                } catch (Exception e) {
+                    Log.d("PlayFab", "Exception in PlayFab api call: " + e); // Did you assign your PlayFabSettings.TitleId correctly?
+                    GodotLib.calldeferred(instanceId, "set_player_statistic_failed", new Object[]{e.toString()});
+                    return;
+                }
+                if (result != null && result.Result != null) {
+                    GodotLib.calldeferred(instanceId, "set_player_statistic_succeeded", new Object[]{});
+                } else if (result != null && result.Error != null) {
+                    String error = CompileErrorsFromResult(result);
+                    Log.d("PlayFab", "Error in set player statistic call, here's some debug information:");
+                    Log.d("PlayFab", error);
+                    GodotLib.calldeferred(instanceId, "set_player_statistic_failed", new Object[]{error});
+                } else {
+                    GodotLib.calldeferred(instanceId, "set_player_statistic_failed", new Object[]{"Unknown error"});
+                }
+            }
+        });
+    }
+
+    public void getPlayerStatistic(final String name) {
+        GetPlayerStatisticsRequest request = new GetPlayerStatisticsRequest();
+        request.StatisticNames = new ArrayList<String>() {{
+            add(name);
+        }};
+
+        final FutureTask<PlayFabResult<GetPlayerStatisticsResult>> getTask = GetPlayerStatisticsAsync(request);
+
+        threadPool.submit(new Runnable() {
+            @Override
+            public void run() {
+                getTask.run();
+                while (!getTask.isDone()) {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        Log.d("PlayFab", "Thread interrupted");
+                        GodotLib.calldeferred(instanceId, "get_player_statistic_failed", new Object[]{e.toString()});
+                        return;
+                    }
+                }
+                PlayFabResult<GetPlayerStatisticsResult> result;
+                try {
+                    result = getTask.get();
+                } catch (Exception e) {
+                    Log.d("PlayFab", "Exception in PlayFab api call: " + e);
+                    GodotLib.calldeferred(instanceId, "get_player_statistic_failed", new Object[]{e.toString()});
+                    return;
+                }
+                if (result != null && result.Result != null ) {
+                    int value = result.Result.Statistics.get(0).Value;
+                    GodotLib.calldeferred(instanceId, "get_player_statistic_succeeded", new Object[]{name, value});
+                } else if (result != null && result.Error != null) {
+                    String error = CompileErrorsFromResult(result);
+                    Log.d("PlayFab", "Error in get player statistic call, here's some debug information:");
+                    Log.d("PlayFab", error);
+                    GodotLib.calldeferred(instanceId, "get_player_statistic_failed", new Object[]{error});
+                } else {
+                    GodotLib.calldeferred(instanceId, "get_player_statistic_failed", new Object[]{"Unknown error"});
                 }
             }
         });
