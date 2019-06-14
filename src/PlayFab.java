@@ -32,6 +32,7 @@ public class PlayFab extends Godot.SingletonBase {
     private Godot activity;
     private static int instanceId = 0;
     private final ExecutorService threadPool;
+    private boolean isLoggedIn = false;
 
     static public Godot.SingletonBase initialize(Activity p_activity) {
         return new PlayFab(p_activity);
@@ -40,7 +41,7 @@ public class PlayFab extends Godot.SingletonBase {
     public PlayFab(Activity p_activity) {
         registerClass("PlayFab", new String[]{
                 "login", "init", "setUserData", "getUserData", "getPlayerStatistic", "setPlayerStatistic",
-                "linkAndroidDeviceId", "linkFacebookAccount", "loginWithFacebook", "loginWithAndroidDeviceId"
+                "linkAndroidDeviceId", "linkFacebookAccount", "loginWithFacebook", "loginWithAndroidDeviceId", "isLoggedIn"
         });
 
         activity = (Godot) p_activity;
@@ -61,6 +62,7 @@ public class PlayFab extends Godot.SingletonBase {
         treatResult(LoginWithFacebookAsync(request), "playfab_facebook_login_failed", new ResultRunnable<LoginResult>() {
             @Override
             public void run(LoginResult result) {
+                isLoggedIn = true;
                 GodotLib.calldeferred(instanceId, "playfab_facebook_login_successful", new Object[]{});
             }
         });
@@ -77,9 +79,14 @@ public class PlayFab extends Godot.SingletonBase {
         treatResult(LoginWithAndroidDeviceIDAsync(request), "playfab_android_login_failed", new ResultRunnable<LoginResult>() {
             @Override
             public void run(LoginResult result) {
+                isLoggedIn = true;
                 GodotLib.calldeferred(instanceId, "playfab_android_login_succeeded", new Object[]{});
             }
         });
+    }
+
+    public boolean isLoggedIn() {
+        return isLoggedIn;
     }
 
     private static <RT> String CompileErrorsFromResult(PlayFabResult<RT> result) {
