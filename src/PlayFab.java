@@ -63,7 +63,7 @@ public class PlayFab extends Godot.SingletonBase {
             @Override
             public void run(LoginResult result) {
                 isLoggedIn = true;
-                GodotLib.calldeferred(instanceId, "playfab_facebook_login_successful", new Object[]{});
+                GodotLib.calldeferred(instanceId, "playfab_facebook_login_succeeded", new Object[]{});
             }
         });
     }
@@ -108,10 +108,10 @@ public class PlayFab extends Godot.SingletonBase {
         request.Data = new HashMap<String, String>() {{
             put(key, value);
         }};
-        treatResult(UpdateUserDataAsync(request), "set_user_data_failed", new ResultRunnable<UpdateUserDataResult>() {
+        treatResult(UpdateUserDataAsync(request), "playfab_set_user_data_failed", new ResultRunnable<UpdateUserDataResult>() {
             @Override
             public void run(UpdateUserDataResult result) {
-                GodotLib.calldeferred(instanceId, "set_user_data_succeed", new Object[]{});
+                GodotLib.calldeferred(instanceId, "playfab_set_user_data_succeed", new Object[]{});
             }
         });
     }
@@ -120,14 +120,14 @@ public class PlayFab extends Godot.SingletonBase {
         GetUserDataRequest request = new GetUserDataRequest();
         request.Keys = new ArrayList<String>() {{ add(key); }};
 
-        treatResult(GetUserDataAsync(request), "get_user_data_failed", new ResultRunnable<GetUserDataResult>() {
+        treatResult(GetUserDataAsync(request), "playfab_get_user_data_failed", new ResultRunnable<GetUserDataResult>() {
             @Override
             public void run(GetUserDataResult result) {
                 Dictionary data = new Dictionary();
                 for (Map.Entry<String, UserDataRecord> entry : result.Data.entrySet()) {
                     data.put(entry.getKey(), entry.getValue().Value);
                 }
-                GodotLib.calldeferred(instanceId, "get_user_data_succeed", new Object[]{data});
+                GodotLib.calldeferred(instanceId, "playfab_get_user_data_succeed", new Object[]{data});
             }
         });
     }
@@ -141,10 +141,10 @@ public class PlayFab extends Godot.SingletonBase {
             add(stat);
         }};
 
-        treatResult(UpdatePlayerStatisticsAsync(request), "set_player_statistic_failed", new ResultRunnable<UpdatePlayerStatisticsResult>() {
+        treatResult(UpdatePlayerStatisticsAsync(request), "playfab_set_player_statistic_failed", new ResultRunnable<UpdatePlayerStatisticsResult>() {
             @Override
             public void run(UpdatePlayerStatisticsResult result) {
-                GodotLib.calldeferred(instanceId, "set_player_statistic_succeeded", new Object[]{});
+                GodotLib.calldeferred(instanceId, "playfab_set_player_statistic_succeeded", new Object[]{});
             }
         });
     }
@@ -157,11 +157,11 @@ public class PlayFab extends Godot.SingletonBase {
 
         final FutureTask<PlayFabResult<GetPlayerStatisticsResult>> getTask = GetPlayerStatisticsAsync(request);
 
-        treatResult(getTask, "get_player_statistic_failed", new ResultRunnable<GetPlayerStatisticsResult>() {
+        treatResult(getTask, "playfab_get_player_statistic_failed", new ResultRunnable<GetPlayerStatisticsResult>() {
             @Override
             public void run(GetPlayerStatisticsResult result) {
                 int value = result.Statistics.get(0).Value;
-                GodotLib.calldeferred(instanceId, "get_player_statistic_succeeded", new Object[]{name, value});
+                GodotLib.calldeferred(instanceId, "playfab_get_player_statistic_succeeded", new Object[]{name, value});
             }
         });
     }
@@ -173,10 +173,10 @@ public class PlayFab extends Godot.SingletonBase {
         request.OS = Build.VERSION.RELEASE;
         request.ForceLink = true;
 
-        treatResult(LinkAndroidDeviceIDAsync(request), "link_android_device_id_failed", new ResultRunnable<LinkAndroidDeviceIDResult>() {
+        treatResult(LinkAndroidDeviceIDAsync(request), "playfab_link_android_device_id_failed", new ResultRunnable<LinkAndroidDeviceIDResult>() {
             @Override
             public void run(LinkAndroidDeviceIDResult result) {
-                GodotLib.calldeferred(instanceId, "link_android_device_id_succeeded", new Object[]{});
+                GodotLib.calldeferred(instanceId, "playfab_link_android_device_id_succeeded", new Object[]{});
             }
         });
     }
@@ -186,10 +186,10 @@ public class PlayFab extends Godot.SingletonBase {
         request.AccessToken = accessToken;
         request.ForceLink = true;
 
-        treatResult(LinkFacebookAccountAsync(request), "link_facebook_account_failed", new ResultRunnable<LinkFacebookAccountResult>() {
+        treatResult(LinkFacebookAccountAsync(request), "playfab_link_facebook_account_failed", new ResultRunnable<LinkFacebookAccountResult>() {
             @Override
             public void run(LinkFacebookAccountResult result) {
-                GodotLib.calldeferred(instanceId, "link_facebook_account_succeeded", new Object[]{});
+                GodotLib.calldeferred(instanceId, "playfab_link_facebook_account_succeeded", new Object[]{});
             }
         });
     }
