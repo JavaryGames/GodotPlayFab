@@ -199,11 +199,9 @@ public class PlayFab extends Godot.SingletonBase {
             @Override
             public void run() {
                 task.run();
-                Log.d("PlayFab", "running task " + fail_method);
                 while (!task.isDone()) {
                     try {
                         Thread.sleep(10);
-                        Log.d("PlayFab", "running task " + fail_method + ", sleeping thread");
                         task.run();
                     } catch (InterruptedException e) {
                         Log.d("PlayFab", "Thread interrupted");
