@@ -292,11 +292,13 @@ public class PlayFab extends Godot.SingletonBase {
         request.StatisticName = statistic;
         request.StartPosition = startPosition;
         request.MaxResultsCount = maxResultsCount;
+        request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowLinkedAccounts = true;
 
-        treatResult(GetLeaderboardAsync(request), "playfab_get_leaderboard_failed", new Object[]{}, new ResultRunnable<GetLeaderboardResult>() {
+        treatResult(GetLeaderboardAsync(request), "playfab_get_leaderboard_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardResult>() {
             @Override
             public void run(GetLeaderboardResult result) {
-                treatLeaderboard(result.Leaderboard, result.Version, "playfab_get_leaderboard_succeeded");
+                treatLeaderboard(result.Leaderboard, statistic, result.Version, "playfab_get_leaderboard_succeeded");
             }
         });
     }
@@ -307,10 +309,10 @@ public class PlayFab extends Godot.SingletonBase {
         request.StartPosition = startPosition;
         request.MaxResultsCount = maxResultsCount;
 
-        treatResult(GetFriendLeaderboardAsync(request), "playfab_get_friend_leaderboard_failed", new Object[]{}, new ResultRunnable<GetLeaderboardResult>() {
+        treatResult(GetFriendLeaderboardAsync(request), "playfab_get_friend_leaderboard_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardResult>() {
             @Override
             public void run(GetLeaderboardResult result) {
-                treatLeaderboard(result.Leaderboard, result.Version, "playfab_get_friend_leaderboard_succeeded");
+                treatLeaderboard(result.Leaderboard, statistic, result.Version, "playfab_get_friend_leaderboard_succeeded");
             }
         });
     }
@@ -321,10 +323,10 @@ public class PlayFab extends Godot.SingletonBase {
         request.StatisticName = statistic;
         request.MaxResultsCount = maxResultsCount;
 
-        treatResult(GetLeaderboardAroundPlayerAsync(request), "playfab_get_leaderboard_around_player_failed", new Object[]{}, new ResultRunnable<GetLeaderboardAroundPlayerResult>() {
+        treatResult(GetLeaderboardAroundPlayerAsync(request), "playfab_get_leaderboard_around_player_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardAroundPlayerResult>() {
             @Override
             public void run(GetLeaderboardAroundPlayerResult result) {
-                treatLeaderboard(result.Leaderboard, result.Version, "playfab_get_leaderboard_around_player_succeeded");
+                treatLeaderboard(result.Leaderboard, statistic, result.Version, "playfab_get_leaderboard_around_player_succeeded");
             }
         });
     }
@@ -335,32 +337,30 @@ public class PlayFab extends Godot.SingletonBase {
         request.StatisticName = statistic;
         request.MaxResultsCount = maxResultsCount;
 
-        treatResult(GetFriendLeaderboardAroundPlayerAsync(request), "playfab_get_friend_leaderboard_around_player_failed", new Object[]{}, new ResultRunnable<GetFriendLeaderboardAroundPlayerResult>() {
+        treatResult(GetFriendLeaderboardAroundPlayerAsync(request), "playfab_get_friend_leaderboard_around_player_failed", new Object[]{statistic}, new ResultRunnable<GetFriendLeaderboardAroundPlayerResult>() {
             @Override
             public void run(GetFriendLeaderboardAroundPlayerResult result) {
-                treatLeaderboard(result.Leaderboard, result.Version, "playfab_friend_get_leaderboard_around_player_succeeded");
+                treatLeaderboard(result.Leaderboard, statistic, result.Version, "playfab_friend_get_leaderboard_around_player_succeeded");
             }
         });
     }
 
-    private void treatLeaderboard(final ArrayList<PlayerLeaderboardEntry> leaderboard, final int leaderboardVersion, final String successful_method) {
+    private void treatLeaderboard(final ArrayList<PlayerLeaderboardEntry> leaderboard, final String statistic, final int leaderboardVersion, final String successful_method) {
         Dictionary result = new Dictionary();
 
         result.put("Version", leaderboardVersion);
-        ArrayList<Dictionary> playerList = new ArrayList<>();
+
+
+        ArrayList<String> playerList = new ArrayList<>();
 
         for (PlayerLeaderboardEntry entry : leaderboard) {
-            Dictionary playerStat = new Dictionary();
-            playerStat.put("DisplayName", entry.DisplayName);
-            playerStat.put("PlayFabId", entry.PlayFabId);
-            playerStat.put("Position", entry.Position);
-            playerStat.put("StatValue", entry.StatValue);
-            playerList.add(playerStat);
+            Gson gson = new GsonBuilder().create();
+            playerList.add(gson.toJson(entry));
         }
 
-        result.put("Leaderboard", playerList);
+        result.put("Leaderboard", playerList.toArray());
 
-        GodotLib.calldeferred(instanceId, successful_method, new Object[]{result});
+        GodotLib.calldeferred(instanceId, successful_method, new Object[]{statistic, result});
     }
 
     private <T> void treatResult(final FutureTask<PlayFabResult<T>> task, final String fail_method, final Object[] extraFailArgs, final ResultRunnable<T> success_treatment) {
