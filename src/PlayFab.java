@@ -49,7 +49,7 @@ public class PlayFab extends Godot.SingletonBase {
 
     public PlayFab(Activity p_activity) {
         registerClass("PlayFab", new String[]{
-                "login", "init", "setUserData", "getUserData", "getPlayerStatistic", "setPlayerStatistic",
+                "login", "init", "setUserData", "getUserData", "deleteUserData", "getPlayerStatistic", "setPlayerStatistic",
                 "linkAndroidDeviceId", "linkFacebookAccount", "loginWithFacebook", "loginWithAndroidDeviceId", "isLoggedIn",
                 "executeCloudScript", "getPlayFabID", "getAccountInfo",
                 "getLeaderboard", "getFriendLeaderboard", "getLeaderboardAroundPlayer", "getFriendLeaderboardAroundPlayer",
@@ -123,7 +123,21 @@ public class PlayFab extends Godot.SingletonBase {
         treatResult(UpdateUserDataAsync(request), "playfab_set_user_data_failed", new Object[]{}, new ResultRunnable<UpdateUserDataResult>() {
             @Override
             public void run(UpdateUserDataResult result) {
-                GodotLib.calldeferred(instanceId, "playfab_set_user_data_succeeded", new Object[]{result.DataVersion});
+                GodotLib.calldeferred(instanceId, "playfab_set_user_data_succeeded", new Object[]{key, result.DataVersion});
+            }
+
+        });
+    }
+
+    public void deleteUserData(final String key) {
+        UpdateUserDataRequest request = new UpdateUserDataRequest();
+        request.KeysToRemove = new ArrayList<String>() {{
+            add(key);
+        }};
+        treatResult(UpdateUserDataAsync(request), "playfab_delete_user_data_failed", new Object[]{}, new ResultRunnable<UpdateUserDataResult>() {
+            @Override
+            public void run(UpdateUserDataResult result) {
+                GodotLib.calldeferred(instanceId, "playfab_delete_user_data_succeeded", new Object[]{result.DataVersion});
             }
 
         });
