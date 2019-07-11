@@ -38,7 +38,7 @@ public class PlayFab extends Godot.SingletonBase {
     private static boolean _running = true;
 
     private Godot activity;
-    private static int instanceId = 0;
+    private int instanceId = 0;
     private final ExecutorService threadPool;
     private boolean isLoggedIn = false;
     private String playfabID = null;
@@ -60,7 +60,7 @@ public class PlayFab extends Godot.SingletonBase {
     }
 
     public void init(int instanceId, String titleId) {
-        PlayFab.instanceId = instanceId;
+        this.instanceId = instanceId;
         PlayFabSettings.TitleId = titleId;
     }
 
@@ -134,10 +134,10 @@ public class PlayFab extends Godot.SingletonBase {
         request.KeysToRemove = new ArrayList<String>() {{
             add(key);
         }};
-        treatResult(UpdateUserDataAsync(request), "playfab_delete_user_data_failed", new Object[]{}, new ResultRunnable<UpdateUserDataResult>() {
+        treatResult(UpdateUserDataAsync(request), "playfab_delete_user_data_failed", new Object[]{key}, new ResultRunnable<UpdateUserDataResult>() {
             @Override
             public void run(UpdateUserDataResult result) {
-                GodotLib.calldeferred(instanceId, "playfab_delete_user_data_succeeded", new Object[]{result.DataVersion});
+                GodotLib.calldeferred(instanceId, "playfab_delete_user_data_succeeded", new Object[]{key, result.DataVersion});
             }
 
         });
