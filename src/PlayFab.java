@@ -27,6 +27,7 @@ import static com.playfab.PlayFabClientAPI.GetLeaderboardAroundPlayerAsync;
 import static com.playfab.PlayFabClientAPI.GetLeaderboardAsync;
 import static com.playfab.PlayFabClientAPI.GetPlayerStatisticsAsync;
 import static com.playfab.PlayFabClientAPI.GetUserDataAsync;
+import static com.playfab.PlayFabClientAPI.GetUserReadOnlyDataAsync;
 import static com.playfab.PlayFabClientAPI.LinkAndroidDeviceIDAsync;
 import static com.playfab.PlayFabClientAPI.LinkFacebookAccountAsync;
 import static com.playfab.PlayFabClientAPI.LoginWithAndroidDeviceIDAsync;
@@ -143,14 +144,23 @@ public class PlayFab extends Godot.SingletonBase {
         });
     }
 
-    public void getUserData(final String key, final String playFabId) {
+    public void getUserData(final String key, final String playFabId, final boolean readOnly) {
         final GetUserDataRequest request = new GetUserDataRequest();
         request.PlayFabId = playFabId;
-        request.Keys = new ArrayList<String>() {{ add(key); }};
+        request.Keys = new ArrayList<String>() {{
+            add(key);
+        }};
 
         Log.d("PlayFab", "Requesting user data: " + key);
 
-        treatResult(GetUserDataAsync(request), "playfab_get_user_data_failed", new Object[]{key}, new ResultRunnable<GetUserDataResult>() {
+        FutureTask<PlayFabResult<GetUserDataResult>> getTask;
+
+        if (readOnly) {
+            getTask = GetUserReadOnlyDataAsync(request);
+        } else {
+            getTask = GetUserDataAsync(request);
+        }
+        treatResult(getTask, "playfab_get_user_data_failed", new Object[]{key}, new ResultRunnable<GetUserDataResult>() {
             @Override
             public void run(GetUserDataResult result) {
                 Log.d("PlayFab", "Got data result: ");
@@ -158,7 +168,7 @@ public class PlayFab extends Godot.SingletonBase {
                 try {
                     value = result.Data.get(key).Value;
                     GodotLib.calldeferred(instanceId, "playfab_get_user_data_succeeded", new Object[]{key, value, result.DataVersion});
-                } catch (NullPointerException e){
+                } catch (NullPointerException e) {
                     GodotLib.calldeferred(instanceId, "playfab_get_user_data_failed", new Object[]{key, "Key not found", 1});
                 }
             }
