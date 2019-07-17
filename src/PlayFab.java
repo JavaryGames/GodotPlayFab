@@ -332,6 +332,8 @@ public class PlayFab extends Godot.SingletonBase {
         request.StatisticName = statistic;
         request.StartPosition = startPosition;
         request.MaxResultsCount = maxResultsCount;
+        request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetFriendLeaderboardAsync(request), "playfab_get_friend_leaderboard_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardResult>() {
             @Override
@@ -346,6 +348,8 @@ public class PlayFab extends Godot.SingletonBase {
         request.PlayFabId = playfabID;
         request.StatisticName = statistic;
         request.MaxResultsCount = maxResultsCount;
+        request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetLeaderboardAroundPlayerAsync(request), "playfab_get_leaderboard_around_player_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardAroundPlayerResult>() {
             @Override
@@ -360,6 +364,8 @@ public class PlayFab extends Godot.SingletonBase {
         request.PlayFabId = playfabID;
         request.StatisticName = statistic;
         request.MaxResultsCount = maxResultsCount;
+        request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetFriendLeaderboardAroundPlayerAsync(request), "playfab_get_friend_leaderboard_around_player_failed", new Object[]{statistic}, new ResultRunnable<GetFriendLeaderboardAroundPlayerResult>() {
             @Override
