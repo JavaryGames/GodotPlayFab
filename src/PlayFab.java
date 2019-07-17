@@ -167,9 +167,9 @@ public class PlayFab extends Godot.SingletonBase {
                 String value;
                 try {
                     value = result.Data.get(key).Value;
-                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_succeeded", new Object[]{key, value, result.DataVersion});
+                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_succeeded", new Object[]{key, value, result.DataVersion, playFabId});
                 } catch (NullPointerException e) {
-                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_failed", new Object[]{key, "Key not found", 1});
+                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_failed", new Object[]{key, "Key not found", 1, playFabId});
                 }
             }
         });
