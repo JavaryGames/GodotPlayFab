@@ -160,16 +160,16 @@ public class PlayFab extends Godot.SingletonBase {
         } else {
             getTask = GetUserDataAsync(request);
         }
-        treatResult(getTask, "playfab_get_user_data_failed", new Object[]{key}, new ResultRunnable<GetUserDataResult>() {
+        treatResult(getTask, "playfab_get_user_data_failed", new Object[]{playFabId, key}, new ResultRunnable<GetUserDataResult>() {
             @Override
             public void run(GetUserDataResult result) {
                 Log.d("PlayFab", "Got data result: ");
                 String value;
                 try {
                     value = result.Data.get(key).Value;
-                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_succeeded", new Object[]{key, value, result.DataVersion, playFabId});
+                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_succeeded", new Object[]{playFabId, key, value, result.DataVersion});
                 } catch (NullPointerException e) {
-                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_failed", new Object[]{key, "Key not found", 1, playFabId});
+                    GodotLib.calldeferred(instanceId, "playfab_get_user_data_failed", new Object[]{playFabId, key, "Key not found", 1});
                 }
             }
         });
