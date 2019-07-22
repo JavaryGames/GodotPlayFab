@@ -1,6 +1,6 @@
 
 def can_build(env, platform):
-    return platform == "android" or platform == "iphone"
+    return platform=="android" or platform=="iphone"
 
 def configure(env):
     if (env['platform'] == 'android'):
@@ -9,6 +9,5 @@ def configure(env):
         env.android_add_dependency("implementation 'com.android.support:multidex:1.0.3'")
         env.android_add_java_dir("android/src/")
     if env['platform'] == "iphone":
-        #env.Append(FRAMEWORKPATH=['modules/GodotPlayFab/ios/lib'])
-        #env.Append(LINKFLAGS=['-ObjC', '-framework', 'FBSDKCoreKit', '-framework', 'FBSDKLoginKit', '-framework', 'FBSDKShareKit', '-framework', 'Bolts'])
-        pass
+        env.Append(FRAMEWORKPATH=['ios/lib'])
+        env.Append(LINKFLAGS=['-ObjC'])#, '-framework', 'FBSDKCoreKit', '-framework', 'FBSDKLoginKit', '-framework', 'FBSDKShareKit', '-framework', 'Bolts'])
