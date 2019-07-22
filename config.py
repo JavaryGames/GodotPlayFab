@@ -1,6 +1,6 @@
 
 def can_build(env, platform):
-    return platform=="android" or platform=="iphone"
+    return platform == "android" or platform == "iphone"
 
 def configure(env):
     if (env['platform'] == 'android'):

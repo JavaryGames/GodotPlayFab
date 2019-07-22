@@ -9,4 +9,8 @@ playfab_sources = [
     "register_types.cpp"
 ]
 
+if (env_playfab["platform"] == "iphone"):
+    env_playfab.add_source_files(env.modules_sources, "ios/*.mm")
+
+
 env_playfab.add_source_files(env.modules_sources, "*.cpp")
