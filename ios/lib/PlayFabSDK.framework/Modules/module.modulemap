@@ -1,0 +1,6 @@
+framework module PlayFabSDK {
+  umbrella header "PlayFabSDK.h"
+
+  export *
+  module * { export * }
+}

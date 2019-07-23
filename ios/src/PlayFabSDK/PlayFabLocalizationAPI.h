@@ -3,6 +3,7 @@
 #import "PlayFabLocalizationDataModels.h"
 #import "PlayFabError.h"
 #import "PlayFabSettings.h"
+#import "PlayFabClientAPI.h"
 
 
 @interface PlayFabLocalizationAPI : NSObject

@@ -3,8 +3,9 @@
 
 #import <Foundation/Foundation.h>
 
-#include "lib/PlayFabSDK/PlayFabSettings.h"
-
+#ifdef __OBJC__
+#import <PlayFabSDK/PlayFabSettings.h>
+#endif
 
 GodotPlayFab::GodotPlayFab()
 {

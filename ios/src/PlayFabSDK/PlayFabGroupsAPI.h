@@ -3,6 +3,7 @@
 #import "PlayFabGroupsDataModels.h"
 #import "PlayFabError.h"
 #import "PlayFabSettings.h"
+#import "PlayFabClientAPI.h"
 
 
 @interface PlayFabGroupsAPI : NSObject

@@ -3,6 +3,7 @@
 #import "PlayFabAuthenticationDataModels.h"
 #import "PlayFabError.h"
 #import "PlayFabSettings.h"
+#import "PlayFabClientAPI.h"
 
 
 @interface PlayFabAuthenticationAPI : NSObject

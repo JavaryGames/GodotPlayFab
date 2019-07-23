@@ -8,12 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-#import "PlayFabSettings.h"
-#import "PlayFabVersion.h"
-#import "PlayFabBaseModel.h"
-#import "PlayFabClientDataModels.h"
-#import "PlayFabError.h"
-#import "PlayFabClientAPI.h"
+#import <PlayFabSDK/PlayFabClientAPI.h>
+#import <PlayFabSDK/PlayFabSettings.h>
+#import <PlayFabSDK/PlayFabVersion.h>
+#import <PlayFabSDK/PlayFabBaseModel.h>
+#import <PlayFabSDK/PlayFabClientDataModels.h>
+#import <PlayFabSDK/PlayFabError.h>
 
 @interface PlayFabSDK : NSObject
 

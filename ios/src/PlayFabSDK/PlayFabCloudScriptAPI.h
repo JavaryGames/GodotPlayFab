@@ -3,6 +3,7 @@
 #import "PlayFabCloudScriptDataModels.h"
 #import "PlayFabError.h"
 #import "PlayFabSettings.h"
+#import "PlayFabClientAPI.h"
 
 
 @interface PlayFabCloudScriptAPI : NSObject

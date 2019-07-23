@@ -10,4 +10,4 @@ def configure(env):
         env.android_add_java_dir("android/src/")
     if env['platform'] == "iphone":
         env.Append(FRAMEWORKPATH=['ios/lib'])
-        env.Append(LINKFLAGS=['-ObjC'])#, '-framework', 'FBSDKCoreKit', '-framework', 'FBSDKLoginKit', '-framework', 'FBSDKShareKit', '-framework', 'Bolts'])
+        env.Append(LINKFLAGS=['-ObjC', '-framework', 'PlayFabSDK'])
