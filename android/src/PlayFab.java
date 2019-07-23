@@ -263,7 +263,7 @@ public class PlayFab extends Godot.SingletonBase {
         });
     }
 
-    public void executeCloudScript(final String functionName, final Dictionary functionParameter, final boolean generatePlayerStreamEvent) {
+    public void executeCloudScript(final String functionName, final String functionParameter, final boolean generatePlayerStreamEvent) {
         ExecuteCloudScriptRequest request = new ExecuteCloudScriptRequest();
 
         request.FunctionName = functionName;
