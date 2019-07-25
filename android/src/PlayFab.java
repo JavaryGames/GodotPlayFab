@@ -75,6 +75,7 @@ public class PlayFab extends Godot.SingletonBase {
             @Override
             public void run(LoginResult result) {
                 isLoggedIn = true;
+                playfabID = result.PlayFabId;
                 GodotLib.calldeferred(instanceId, "playfab_facebook_login_succeeded", new Object[]{});
             }
         });

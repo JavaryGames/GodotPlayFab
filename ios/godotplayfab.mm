@@ -1,37 +1,53 @@
 #include "godotplayfab.h"
 #import "app_delegate.h"
 
-#import <Foundation/Foundation.h>
-
 #ifdef __OBJC__
 #import <PlayFabSDK/PlayFabSettings.h>
+#import <PlayFabSDK/PlayFabClientAPI.h>
 #endif
 
-GodotPlayFab::GodotPlayFab()
-{
+
+GodotPlayFab::GodotPlayFab() {
+    loggedIn = false;
+    playfabID = "";
 }
 
-GodotPlayFab::~GodotPlayFab() {
-
-}
+GodotPlayFab::~GodotPlayFab() {}
 
 
 void GodotPlayFab::init(const int instance_id, const String &title_id){
-    godot_instance_id = instance_id;
+    instanceId = instance_id;
     [PlayFabSettings setTitleId: [NSString stringWithCString: title_id.utf8().get_data()]];
-
 }
 
-void GodotPlayFab::loginWithFacebook(const String &access_token){
-    NSLog(@"godotplayfab.mm::loginWithFacebook: Not yet implemented");
+void GodotPlayFab::loginWithFacebook(const String &accessToken){
+    NSDictionary *properties = @{
+        @"CreateAccount": @true,
+        @"AccessToken": [NSString stringWithCString: accessToken.utf8().get_data()],
+        @"TitleId": PlayFabSettings.TitleId,
+    };
+    ClientLoginWithFacebookRequest *request = [[[ClientLoginWithFacebookRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] LoginWithFacebook:request
+    success: ^(ClientLoginResult* result, NSObject* userData){
+        loggedIn = true;
+        playfabID = [result.PlayFabId UTF8String];
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_facebook_login_succeeded"));
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_facebook_login_failed"), [error.errorMessage UTF8String]);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::loginWithAndroidDeviceId(const String &android_id){
-    NSLog(@"godotplayfab.mm::loginWithAndroidDeviceId: Not yet implemented");
+    NSLog(@"godotplayfab.mm::loginWithAndroidDeviceId: Not implemented");
 }
 
 bool GodotPlayFab::isLoggedIn(){
-    NSLog(@"godotplayfab.mm::isLoggedIn: Not yet implemented");
+    return loggedIn;
 }
 
 void GodotPlayFab::setUserData(const String &key, const String &value){
@@ -42,12 +58,12 @@ void GodotPlayFab::deleteUserData(const String &key){
     NSLog(@"godotplayfab.mm::deleteUserData: Not yet implemented");
 }
 
-void GodotPlayFab::getUserData(const String &key, const String &playfab_id, const bool read_only){
+void GodotPlayFab::getUserData(const String &key, const String &playfabID, const bool read_only){
     NSLog(@"godotplayfab.mm::getUserData: Not yet implemented");
 }
 
 String GodotPlayFab::getPlayFabID(){
-    NSLog(@"godotplayfab.mm::getPlayFabID: Not yet implemented");
+    return playfabID;
 }
 
 void GodotPlayFab::setPlayerStatistic(const String &name, const int value){
@@ -58,8 +74,31 @@ void GodotPlayFab::getPlayerStatistic(const String &name){
     NSLog(@"godotplayfab.mm::getPlayerStatistic: Not yet implemented");
 }
 
-void GodotPlayFab::getAccountInfo(const String &playfab_iD){
-    NSLog(@"godotplayfab.mm::getAccountInfo: Not yet implemented");
+void GodotPlayFab::getAccountInfo(const String &playfabID){
+    //NSLog(@"godotplayfab.mm::getAccountInfo: Not yet implemented");
+
+    NSDictionary *properties = @{
+        @"PlayFabId": [NSString stringWithCString: playfabID.utf8().get_data()],
+    };
+    ClientGetAccountInfoRequest *request = [[[ClientGetAccountInfoRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] GetAccountInfo:request
+    success: ^(ClientGetAccountInfoResult* result, NSObject* userData){
+        Dictionary info = Dictionary();
+        if (result.AccountInfo.FacebookInfo != nil){
+            Dictionary facebookInfo = Dictionary();
+            facebookInfo["FacebookId"] = [result.AccountInfo.FacebookInfo.FacebookId UTF8String];
+            facebookInfo["FullName"] = [result.AccountInfo.FacebookInfo.FullName UTF8String];
+            info["FacebookInfo"] = facebookInfo;
+        }
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_account_info_succeeded"), info);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_account_info_failed"), [error.errorMessage UTF8String]);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::linkAndroidDeviceId(const String &android_id){
@@ -82,11 +121,11 @@ void GodotPlayFab::getFriendLeaderboard(const String &statistic, const int start
     NSLog(@"godotplayfab.mm::getFriendLeaderboard: Not yet implemented");
 }
 
-void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfab_iD, const String &statistic, const int start_position, const int max_results_count){
+void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int start_position, const int max_results_count){
     NSLog(@"godotplayfab.mm::getLeaderboardAroundPlayer: Not yet implemented");
 }
 
-void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfab_iD, const String &statistic, const int max_results_count){
+void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int max_results_count){
     NSLog(@"godotplayfab.mm::getFriendLeaderboardAroundPlayer: Not yet implemented");
 }
 

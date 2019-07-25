@@ -7,8 +7,9 @@ class GodotPlayFab : public Reference {
 
     GDCLASS(GodotPlayFab, Reference);
 
-    int godot_instance_id;
-
+    int instanceId;
+    String playfabID;
+    bool loggedIn;
 
 protected:
     static void _bind_methods();
@@ -19,23 +20,23 @@ public:
     // Place all methods headers here
 
     void init(const int instance_id, const String &title_id);
-    void loginWithFacebook(const String &access_token);
+    void loginWithFacebook(const String &accessToken);
     void loginWithAndroidDeviceId(const String &android_id);
     bool isLoggedIn();
     void setUserData(const String &key, const String &value);
     void deleteUserData(const String &key);
-    void getUserData(const String &key, const String &playfab_id, const bool read_only);
+    void getUserData(const String &key, const String &playfabID, const bool read_only);
     String getPlayFabID();
     void setPlayerStatistic(const String &name, const int value);
     void getPlayerStatistic(const String &name);
-    void getAccountInfo(const String &playfab_id);
+    void getAccountInfo(const String &playfabID);
     void linkAndroidDeviceId(const String &android_id);
     void linkFacebookAccount(const String &access_token);
     void executeCloudScript(const String &function_name, const Dictionary &function_parameter, const bool generate_player_stream_event);
     void getLeaderboard(const String &statistic, const int start_position, const int max_results_count);
     void getFriendLeaderboard(const String &statistic, const int start_position, const int max_results_count);
-    void getLeaderboardAroundPlayer(const String &playfab_id, const String &statistic, const int start_position, const int max_results_count);
-    void getFriendLeaderboardAroundPlayer(const String &playfab_id, const String &statistic, const int max_results_count);
+    void getLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int start_position, const int max_results_count);
+    void getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int max_results_count);
 
 
     GodotPlayFab();
