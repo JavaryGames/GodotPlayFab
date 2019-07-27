@@ -4,8 +4,10 @@
 #ifdef __OBJC__
 #import <PlayFabSDK/PlayFabSettings.h>
 #import <PlayFabSDK/PlayFabClientAPI.h>
+#import <PlayFabSDK/PlayFabClientDataModels.h>
 #endif
 
+NSDictionary *convertFromDictionary(const Dictionary& dict);
 
 GodotPlayFab::GodotPlayFab() {
     loggedIn = false;
@@ -15,9 +17,9 @@ GodotPlayFab::GodotPlayFab() {
 GodotPlayFab::~GodotPlayFab() {}
 
 
-void GodotPlayFab::init(const int instance_id, const String &title_id){
-    instanceId = instance_id;
-    [PlayFabSettings setTitleId: [NSString stringWithCString: title_id.utf8().get_data()]];
+void GodotPlayFab::init(const int godotId, const String &titleId){
+    instanceId = godotId;
+    [PlayFabSettings setTitleId: [NSString stringWithCString: titleId.utf8().get_data()]];
 }
 
 void GodotPlayFab::loginWithFacebook(const String &accessToken){
@@ -37,7 +39,7 @@ void GodotPlayFab::loginWithFacebook(const String &accessToken){
     }
     failure: ^(PlayFabError* error, NSObject* userData){
         Object *obj = ObjectDB::get_instance(instanceId);
-        obj->call_deferred(String("playfab_facebook_login_failed"), [error.errorMessage UTF8String]);
+        obj->call_deferred(String("playfab_facebook_login_failed"), [error.errorMessage UTF8String], -1);
     }
     withUserData: nil];
 }
@@ -51,15 +53,94 @@ bool GodotPlayFab::isLoggedIn(){
 }
 
 void GodotPlayFab::setUserData(const String &key, const String &value){
-    NSLog(@"godotplayfab.mm::setUserData: Not yet implemented");
+    //TEST
+    NSDictionary *data = @{
+        [NSString stringWithCString: key.utf8().get_data()]: [NSString stringWithCString: value.utf8().get_data()],
+    };
+    NSDictionary *properties = @{
+        @"Data": data,
+    };
+    ClientUpdateUserDataRequest *request = [[[ClientUpdateUserDataRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] UpdateUserData:request
+    success: ^(ClientUpdateUserDataResult* result, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_set_user_data_succeeded"), key, [result.DataVersion UTF8String]);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_set_user_data_failed"), [error.errorMessage UTF8String]);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::deleteUserData(const String &key){
-    NSLog(@"godotplayfab.mm::deleteUserData: Not yet implemented");
+    //TEST
+    NSArray *keysToRemove = @[
+        [NSString stringWithCString: key.utf8().get_data()]
+    ];
+    NSDictionary *properties = @{
+        @"KeysToRemove": keysToRemove,
+        //@"Permission"
+    };
+    ClientUpdateUserDataRequest *request = [[[ClientUpdateUserDataRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] UpdateUserData:request
+    success: ^(ClientUpdateUserDataResult* result, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_delete_user_data_succeeded"), key, [result.DataVersion UTF8String]);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_delete_user_data_failed"), key, [error.errorMessage UTF8String], -1);
+    }
+    withUserData: nil];
 }
 
-void GodotPlayFab::getUserData(const String &key, const String &playfabID, const bool read_only){
-    NSLog(@"godotplayfab.mm::getUserData: Not yet implemented");
+void GodotPlayFab::getUserData(const String &key, const String &playfabID, const bool readOnly){
+    //TEST
+    NSArray *keys = @[
+        [NSString stringWithCString: key.utf8().get_data()]
+    ];
+    NSDictionary *properties = @{
+        @"PlayFabId": [NSString stringWithCString: playfabID.utf8().get_data()],
+        @"Keys": keys,
+        //@"Permission"
+    };
+    ClientGetUserDataRequest *request = [[[ClientGetUserDataRequest alloc] init] initWithDictionary: properties];
+
+    void (^successCallback)(ClientGetUserDataResult* result, NSObject* userData);
+    void (^failureCallback)(PlayFabError* result, NSObject* userData);
+
+    successCallback = ^(ClientGetUserDataResult* result, NSObject* userData){
+        String value;
+        NSString *nsKey = [NSString stringWithCString: key.utf8().get_data()];
+        if ([result.Data objectForKey:nsKey]){
+            value = [[result.Data objectForKey:nsKey] UTF8String];
+            Object *obj = ObjectDB::get_instance(instanceId);
+            obj->call_deferred(String("playfab_get_user_data_succeeded"), playfabID, key, value, [result.DataVersion UTF8String]);
+        }else{
+            Object *obj = ObjectDB::get_instance(instanceId);
+            obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, "Key not found");
+        }
+    };
+    failureCallback = ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, [error.errorMessage UTF8String], -1);
+    };
+
+    if (!readOnly){
+        [[PlayFabClientAPI GetInstance] GetUserData:request
+        success: successCallback
+        failure: failureCallback
+        withUserData: nil];
+    }else{
+        [[PlayFabClientAPI GetInstance] GetUserReadOnlyData:request
+        success: successCallback
+        failure: failureCallback
+        withUserData: nil];
+    }
+
 }
 
 String GodotPlayFab::getPlayFabID(){
@@ -75,7 +156,6 @@ void GodotPlayFab::getPlayerStatistic(const String &name){
 }
 
 void GodotPlayFab::getAccountInfo(const String &playfabID){
-    //NSLog(@"godotplayfab.mm::getAccountInfo: Not yet implemented");
 
     NSDictionary *properties = @{
         @"PlayFabId": [NSString stringWithCString: playfabID.utf8().get_data()],
@@ -96,7 +176,7 @@ void GodotPlayFab::getAccountInfo(const String &playfabID){
     }
     failure: ^(PlayFabError* error, NSObject* userData){
         Object *obj = ObjectDB::get_instance(instanceId);
-        obj->call_deferred(String("playfab_get_account_info_failed"), [error.errorMessage UTF8String]);
+        obj->call_deferred(String("playfab_get_account_info_failed"), [error.errorMessage UTF8String], -1);
     }
     withUserData: nil];
 }
@@ -109,8 +189,65 @@ void GodotPlayFab::linkFacebookAccount(const String &access_token){
     NSLog(@"godotplayfab.mm::linkFacebookAccount: Not yet implemented");
 }
 
-void GodotPlayFab::executeCloudScript(const String &function_name, const Dictionary &function_parameter, const bool generate_player_stream_event){
-    NSLog(@"godotplayfab.mm::executeCloudScript: Not yet implemented");
+void GodotPlayFab::executeCloudScript(const String &functionName, const String &functionParameter, const bool generatePlayerStreamEvent){
+
+    currentFunctionName = functionName;
+
+    NSData *jsonData = [[NSString stringWithCString: functionParameter.utf8().get_data()] dataUsingEncoding:NSUTF8StringEncoding];
+    NSError *error;
+    NSDictionary *nsFunctionParameter = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
+
+    NSDictionary *properties = @{
+        @"FunctionName": [NSString stringWithCString: functionName.utf8().get_data()],
+        @"FunctionParameter": nsFunctionParameter,
+        @"GeneratePlayStreamEvent": [NSNumber numberWithBool:generatePlayerStreamEvent],
+        @"ClientRevisionSelection": [NSNumber numberWithInt:ClientCloudScriptRevisionOptionLive],
+    };
+    ClientExecuteCloudScriptRequest *request = [[[ClientExecuteCloudScriptRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] ExecuteCloudScript:request
+    success: ^(ClientExecuteCloudScriptResult* result, NSObject* userData){
+        Dictionary response = Dictionary();
+        response["APIRequestsIssued"] = [result.APIRequestsIssued intValue];
+        response["ExecutionTimeSeconds"] = [result.ExecutionTimeSeconds floatValue];
+        response["HttpRequestsIssued"] = [result.HttpRequestsIssued intValue];
+        response["FunctionName"] = [result.FunctionName UTF8String];
+        if (result.FunctionResult != nil) {
+            NSError *err;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:result.FunctionResult options:0 error:&err]; 
+            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            response["FunctionResult"] = [jsonString UTF8String];
+        }
+        response["FunctionResultTooLarge"] = result.FunctionResultTooLarge;
+        response["LogsTooLarge"] = result.LogsTooLarge;
+        response["MemoryConsumedBytes"] = [result.MemoryConsumedBytes intValue];
+        response["ProcessorTimeSeconds"] = [result.ProcessorTimeSeconds floatValue];
+        response["Revision"] = [result.Revision intValue];
+        if (result.Error != nil) {
+            response["ErrorMessage"] = [result.Error.Message UTF8String];
+            response["Error"] = [result.Error.Error UTF8String];
+            response["ErrorStackTrace"] = [result.Error.StackTrace UTF8String];
+        }
+        if (result.Logs != nil) {
+            Array logs = Array();
+            for (ClientLogStatement *log in result.Logs){
+                if (log != nil){
+                    logs.push_back([log.Message UTF8String]);
+                }
+            }
+            response["Logs"] = logs;
+        }
+
+        NSLog(@"[PlayFab] CloudScript completed");
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_execute_cloud_script_succeeded"), currentFunctionName, response);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        NSLog(@"UUOOUOUOUOUOUOUOUOUO %@", error.errorMessage);
+        obj->call_deferred(String("playfab_execute_cloud_script_failed"), currentFunctionName, [error.errorMessage UTF8String], -1);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::getLeaderboard(const String &statistic, const int start_position, const int max_results_count){
@@ -127,6 +264,40 @@ void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const Str
 
 void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int max_results_count){
     NSLog(@"godotplayfab.mm::getFriendLeaderboardAroundPlayer: Not yet implemented");
+}
+
+
+NSDictionary *convertFromDictionary(const Dictionary& dict)
+{
+    NSMutableDictionary *result = [NSMutableDictionary new];
+    for(int i=0; i<dict.size(); i++) {
+        Variant key = dict.get_key_at_index(i);
+        Variant val = dict.get_value_at_index(i);
+        if(key.get_type() == Variant::STRING) {
+            NSString *strKey = [NSString stringWithUTF8String:((String)key).utf8().get_data()];
+            if(val.get_type() == Variant::INT) {
+                int i = (int)val;
+                result[strKey] = @(i);
+            } else if(val.get_type() == Variant::REAL) {
+                double d = (double)val;
+                result[strKey] = @(d);
+            } else if(val.get_type() == Variant::STRING) {
+                NSString *s = [NSString stringWithUTF8String:((String)val).utf8().get_data()];
+                result[strKey] = s;
+            } else if(val.get_type() == Variant::BOOL) {
+                BOOL b = (bool)val;
+                result[strKey] = @(b);
+            } else if(val.get_type() == Variant::DICTIONARY) {
+                NSDictionary *d = convertFromDictionary((Dictionary)val);
+                result[strKey] = d;
+            } else {
+                ERR_PRINT("Unexpected type as dictionary value");
+            }
+        } else {
+            ERR_PRINT("Non string key in Dictionary");
+        }
+    }
+    return result;
 }
 
 
