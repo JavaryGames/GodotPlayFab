@@ -53,6 +53,10 @@ bool GodotPlayFab::isLoggedIn(){
 }
 
 void GodotPlayFab::setUserData(const String &key, const String &value){
+    NSLog(@"godotplayfab.mm::setUserData: Implementation not finished");
+    Object *obj = ObjectDB::get_instance(instanceId);
+    obj->call_deferred(String("playfab_set_user_data_failed"), "Not available");
+    return;
     //TEST
     NSDictionary *data = @{
         [NSString stringWithCString: key.utf8().get_data()]: [NSString stringWithCString: value.utf8().get_data()],
@@ -75,6 +79,10 @@ void GodotPlayFab::setUserData(const String &key, const String &value){
 }
 
 void GodotPlayFab::deleteUserData(const String &key){
+    NSLog(@"godotplayfab.mm::deleteUserData: Implementation not finished");
+    Object *obj = ObjectDB::get_instance(instanceId);
+    obj->call_deferred(String("playfab_delete_user_data_failed"), key, "Not available", -1);
+    return;
     //TEST
     NSArray *keysToRemove = @[
         [NSString stringWithCString: key.utf8().get_data()]
@@ -98,6 +106,10 @@ void GodotPlayFab::deleteUserData(const String &key){
 }
 
 void GodotPlayFab::getUserData(const String &key, const String &playfabID, const bool readOnly){
+    NSLog(@"godotplayfab.mm::getUserData: Implementation not finished");
+    Object *obj = ObjectDB::get_instance(instanceId);
+    obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, "", "Not available");
+    return;
     //TEST
     NSArray *keys = @[
         [NSString stringWithCString: key.utf8().get_data()]
