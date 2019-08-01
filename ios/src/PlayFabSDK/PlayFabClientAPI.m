@@ -703,10 +703,8 @@ return deviceModel;
 }
 -(void) ExecuteCloudScript:(ClientExecuteCloudScriptRequest*)request success:(ExecuteCloudScriptCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData
 {
-    
-    
     NSString *jsonString = [request JSONStringWithClass:[ClientExecuteCloudScriptRequest class]];
-    
+
     PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;
@@ -728,7 +726,6 @@ return deviceModel;
             }
         } else { //Connection Error:
             NSError *e = nil;
-            NSLog(@"connection error response: %@",data);
             PlayFabError *model;
             if (data != nil) {
                 NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &e];
@@ -738,7 +735,7 @@ return deviceModel;
                 model = [PlayFabError new];
                 model.error = @"unknown, data empty.";
             }
-        errorCallback (model, userData);
+            errorCallback (model, userData);
         }
     }];
 

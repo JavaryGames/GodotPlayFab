@@ -53,10 +53,6 @@ bool GodotPlayFab::isLoggedIn(){
 }
 
 void GodotPlayFab::setUserData(const String &key, const String &value){
-    NSLog(@"godotplayfab.mm::setUserData: Implementation not finished");
-    Object *obj = ObjectDB::get_instance(instanceId);
-    obj->call_deferred(String("playfab_set_user_data_failed"), "Not available");
-    return;
     //TEST
     NSDictionary *data = @{
         [NSString stringWithCString: key.utf8().get_data()]: [NSString stringWithCString: value.utf8().get_data()],
@@ -79,17 +75,12 @@ void GodotPlayFab::setUserData(const String &key, const String &value){
 }
 
 void GodotPlayFab::deleteUserData(const String &key){
-    NSLog(@"godotplayfab.mm::deleteUserData: Implementation not finished");
-    Object *obj = ObjectDB::get_instance(instanceId);
-    obj->call_deferred(String("playfab_delete_user_data_failed"), key, "Not available", -1);
-    return;
     //TEST
     NSArray *keysToRemove = @[
         [NSString stringWithCString: key.utf8().get_data()]
     ];
     NSDictionary *properties = @{
         @"KeysToRemove": keysToRemove,
-        //@"Permission"
     };
     ClientUpdateUserDataRequest *request = [[[ClientUpdateUserDataRequest alloc] init] initWithDictionary: properties];
 
@@ -106,18 +97,12 @@ void GodotPlayFab::deleteUserData(const String &key){
 }
 
 void GodotPlayFab::getUserData(const String &key, const String &playfabID, const bool readOnly){
-    NSLog(@"godotplayfab.mm::getUserData: Implementation not finished");
-    Object *obj = ObjectDB::get_instance(instanceId);
-    obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, "", "Not available");
-    return;
-    //TEST
     NSArray *keys = @[
         [NSString stringWithCString: key.utf8().get_data()]
     ];
     NSDictionary *properties = @{
         @"PlayFabId": [NSString stringWithCString: playfabID.utf8().get_data()],
         @"Keys": keys,
-        //@"Permission"
     };
     ClientGetUserDataRequest *request = [[[ClientGetUserDataRequest alloc] init] initWithDictionary: properties];
 
@@ -133,7 +118,7 @@ void GodotPlayFab::getUserData(const String &key, const String &playfabID, const
             obj->call_deferred(String("playfab_get_user_data_succeeded"), playfabID, key, value, [result.DataVersion UTF8String]);
         }else{
             Object *obj = ObjectDB::get_instance(instanceId);
-            obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, "Key not found");
+            obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, "Key not found", 1);
         }
     };
     failureCallback = ^(PlayFabError* error, NSObject* userData){
@@ -203,19 +188,15 @@ void GodotPlayFab::linkFacebookAccount(const String &access_token){
 
 void GodotPlayFab::executeCloudScript(const String &functionName, const String &functionParameter, const bool generatePlayerStreamEvent){
 
-    currentFunctionName = functionName;
-
-    NSData *jsonData = [[NSString stringWithCString: functionParameter.utf8().get_data()] dataUsingEncoding:NSUTF8StringEncoding];
-    NSError *error;
-    NSDictionary *nsFunctionParameter = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
-
     NSDictionary *properties = @{
         @"FunctionName": [NSString stringWithCString: functionName.utf8().get_data()],
-        @"FunctionParameter": nsFunctionParameter,
+        @"FunctionParameter": [NSString stringWithCString: functionParameter.utf8().get_data()],
         @"GeneratePlayStreamEvent": [NSNumber numberWithBool:generatePlayerStreamEvent],
         @"ClientRevisionSelection": [NSNumber numberWithInt:ClientCloudScriptRevisionOptionLive],
     };
     ClientExecuteCloudScriptRequest *request = [[[ClientExecuteCloudScriptRequest alloc] init] initWithDictionary: properties];
+    // Bypassing strange conversion inside initWithDictionary that messes with RevisionSelection value
+    request.RevisionSelection = ClientCloudScriptRevisionOptionLive;
 
     [[PlayFabClientAPI GetInstance] ExecuteCloudScript:request
     success: ^(ClientExecuteCloudScriptResult* result, NSObject* userData){
@@ -256,7 +237,6 @@ void GodotPlayFab::executeCloudScript(const String &functionName, const String &
     }
     failure: ^(PlayFabError* error, NSObject* userData){
         Object *obj = ObjectDB::get_instance(instanceId);
-        NSLog(@"UUOOUOUOUOUOUOUOUOUO %@", error.errorMessage);
         obj->call_deferred(String("playfab_execute_cloud_script_failed"), currentFunctionName, [error.errorMessage UTF8String], -1);
     }
     withUserData: nil];

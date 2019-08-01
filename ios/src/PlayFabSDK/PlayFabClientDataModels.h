@@ -2590,7 +2590,7 @@ typedef enum
 /// Object that is passed in to the function as the first argument
 */
 /// </summary>
-@property NSDictionary* FunctionParameter; 
+@property NSObject* FunctionParameter; 
 
 /// <summary>
 /*
