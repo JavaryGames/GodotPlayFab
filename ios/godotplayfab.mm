@@ -53,7 +53,7 @@ bool GodotPlayFab::isLoggedIn(){
 }
 
 void GodotPlayFab::setUserData(const String &key, const String &value){
-    //TEST
+    NSLog(@"godotplayfab.mm::setUserData: Test pending");
     NSDictionary *data = @{
         [NSString stringWithCString: key.utf8().get_data()]: [NSString stringWithCString: value.utf8().get_data()],
     };
@@ -75,7 +75,7 @@ void GodotPlayFab::setUserData(const String &key, const String &value){
 }
 
 void GodotPlayFab::deleteUserData(const String &key){
-    //TEST
+    NSLog(@"godotplayfab.mm::deleteUserData: Test pending");
     NSArray *keysToRemove = @[
         [NSString stringWithCString: key.utf8().get_data()]
     ];
@@ -137,7 +137,6 @@ void GodotPlayFab::getUserData(const String &key, const String &playfabID, const
         failure: failureCallback
         withUserData: nil];
     }
-
 }
 
 String GodotPlayFab::getPlayFabID(){
@@ -145,11 +144,54 @@ String GodotPlayFab::getPlayFabID(){
 }
 
 void GodotPlayFab::setPlayerStatistic(const String &name, const int value){
-    NSLog(@"godotplayfab.mm::setPlayerStatistic: Not yet implemented");
+    NSLog(@"godotplayfab.mm::setPlayerStatistic: Test pending");
+
+    NSDictionary *stat = @{
+        @"StatisticName": [NSString stringWithCString: name.utf8().get_data()],
+        @"Value": [NSNumber numberWithInt:value],
+    };
+    NSArray *statistic = @[
+        stat
+    ];
+    NSDictionary *properties = @{
+        @"Statistics": statistic,
+    };
+    ClientUpdatePlayerStatisticsRequest *request = [[[ClientUpdatePlayerStatisticsRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] UpdatePlayerStatistics:request
+    success: ^(ClientUpdatePlayerStatisticsResult* result, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_set_player_statistic_succeeded"));
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_set_player_statistic_failed"), [error.errorMessage UTF8String]);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::getPlayerStatistic(const String &name){
-    NSLog(@"godotplayfab.mm::getPlayerStatistic: Not yet implemented");
+    NSLog(@"godotplayfab.mm::getPlayerStatistic: Test pending");
+
+    NSArray *statisticNames = @[
+        [NSString stringWithCString: name.utf8().get_data()]
+    ];
+    NSDictionary *properties = @{
+        @"StatisticNames": statisticNames,
+    };
+    ClientGetPlayerStatisticsRequest *request = [[[ClientGetPlayerStatisticsRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] GetPlayerStatistics:request
+    success: ^(ClientGetPlayerStatisticsResult* result, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        NSNumber value = [result.Statistics objectAtIndex:0].Value;
+        obj->call_deferred(String("playfab_get_player_statistic_succeeded"), name, [value floatValue]);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_player_statistic_failed"), [error.errorMessage UTF8String]);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::getAccountInfo(const String &playfabID){
