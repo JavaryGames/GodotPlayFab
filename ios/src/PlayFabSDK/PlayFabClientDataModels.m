@@ -2081,7 +2081,6 @@
         return nil;
     }
 
-    
     self.MaxResultsCount = [properties valueForKey:@"MaxResultsCount"];
     
     self.ProfileConstraints = [[ClientPlayerProfileViewConstraints new] initWithDictionary:[properties objectForKey:@"ProfileConstraints"]];
@@ -2091,10 +2090,27 @@
     self.StatisticName = [properties valueForKey:@"StatisticName"];
     
     self.Version = [properties valueForKey:@"Version"];
-    
 
     return self;
 }
+
+-(NSDictionary*)getDictionary
+{
+
+    NSMutableDictionary* dict = [@{
+        @"MaxResultsCount": self.MaxResultsCount,
+        @"ProfileConstraints": [self.ProfileConstraints getDictionary],
+        @"StartPosition": self.StartPosition,
+        @"StatisticName": self.StatisticName,
+    } mutableCopy];
+
+    if (self.Version != nil){
+        [dict setObject:self.Version forKey:@"Version"];
+    }
+
+    return [[NSDictionary alloc] initWithDictionary:dict];;
+}
+
 @end
 @implementation ClientGetLeaderboardResult
 
@@ -4076,7 +4092,6 @@
 @end
 @implementation ClientLinkedPlatformAccountModel
 
-
 -(id)initWithDictionary:(NSDictionary*)properties
 {
     self = [super init];
@@ -4084,17 +4099,60 @@
         return nil;
     }
 
+    NSArray* platformString = [self getPlatformList];
     
     self.Email = [properties valueForKey:@"Email"];
-    
-    self.Platform = (ClientLoginIdentityProvider)[properties valueForKey:@"ClientPlatform"];
+
+    self.Platform = [platformString indexOfObject:[properties valueForKey:@"Platform"]];
     
     self.PlatformUserId = [properties valueForKey:@"PlatformUserId"];
     
     self.Username = [properties valueForKey:@"Username"];
     
-
     return self;
+}
+
+-(NSDictionary*)getDictionary
+{
+    NSArray* platformString = [self getPlatformList];
+
+    NSMutableDictionary* dict = [@{
+        @"Platform": [platformString objectAtIndex:self.Platform],
+        @"PlatformUserId": self.PlatformUserId,
+    } mutableCopy];
+
+    if(self.Username != nil){
+        [dict setObject:self.Username forKey:@"Username"];
+    }
+    if(self.Email != nil){
+        [dict setObject:self.Email forKey:@"Email"];
+    }
+
+    return [[NSDictionary alloc] initWithDictionary:dict];
+}
+
+-(NSArray*) getPlatformList{
+    return @[
+        @"Unknown",
+        @"PlayFab",
+        @"Custom",
+        @"GameCenter",
+        @"GooglePlay",
+        @"Steam",
+        @"XBoxLive",
+        @"PSN",
+        @"Kongregate",
+        @"Facebook",
+        @"IOSDevice",
+        @"AndroidDevice",
+        @"Twitch",
+        @"WindowsHello",
+        @"GameServer",
+        @"CustomServer",
+        @"NintendoSwitch",
+        @"FacebookInstantGames",
+        @"OpenIdConnect",
+    ];
 }
 @end
 @implementation ClientLinkFacebookAccountRequest
@@ -5455,8 +5513,23 @@
     
     self.StatValue = [properties valueForKey:@"StatValue"];
     
-
     return self;
+}
+
+-(NSDictionary*)getDictionary
+{
+    NSMutableDictionary* dict = [@{
+        @"PlayFabId": self.PlayFabId,
+        @"Position": self.Position,
+        @"Profile": [self.Profile getDictionary],
+        @"StatValue": self.StatValue,
+    } mutableCopy];
+
+    if(self.DisplayName != nil){
+        [dict setObject:self.DisplayName forKey:@"DisplayName"];
+    }
+
+    return [[NSDictionary alloc] initWithDictionary:dict];
 }
 @end
 @implementation ClientPlayerProfileModel
@@ -5471,13 +5544,13 @@
 
     
     if ([properties objectForKey:@"AdCampaignAttributions"]){
-    NSArray* member_list = [properties objectForKey:@"AdCampaignAttributions"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientAdCampaignAttributionModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"AdCampaignAttributions"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientAdCampaignAttributionModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.AdCampaignAttributions = [mutable_storage copy];
     }
-    self.AdCampaignAttributions = [mutable_storage copy];
-}
 
     
     self.AvatarUrl = [properties valueForKey:@"AvatarUrl"];
@@ -5485,13 +5558,13 @@
     self.BannedUntil = [[PlayFabBaseModel timestampFormatter] dateFromString:[properties valueForKey:@"BannedUntil"]];
     
     if ([properties objectForKey:@"ContactEmailAddresses"]){
-    NSArray* member_list = [properties objectForKey:@"ContactEmailAddresses"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientContactEmailInfoModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"ContactEmailAddresses"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientContactEmailInfoModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.ContactEmailAddresses = [mutable_storage copy];
     }
-    self.ContactEmailAddresses = [mutable_storage copy];
-}
 
     
     self.Created = [[PlayFabBaseModel timestampFormatter] dateFromString:[properties valueForKey:@"Created"]];
@@ -5501,33 +5574,33 @@
     self.LastLogin = [[PlayFabBaseModel timestampFormatter] dateFromString:[properties valueForKey:@"LastLogin"]];
     
     if ([properties objectForKey:@"LinkedAccounts"]){
-    NSArray* member_list = [properties objectForKey:@"LinkedAccounts"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientLinkedPlatformAccountModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"LinkedAccounts"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientLinkedPlatformAccountModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.LinkedAccounts = [mutable_storage copy];
     }
-    self.LinkedAccounts = [mutable_storage copy];
-}
 
     
     if ([properties objectForKey:@"Locations"]){
-    NSArray* member_list = [properties objectForKey:@"Locations"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientLocationModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"Locations"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientLocationModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.Locations = [mutable_storage copy];
     }
-    self.Locations = [mutable_storage copy];
-}
 
     
     if ([properties objectForKey:@"Memberships"]){
-    NSArray* member_list = [properties objectForKey:@"Memberships"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientMembershipModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"Memberships"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientMembershipModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.Memberships = [mutable_storage copy];
     }
-    self.Memberships = [mutable_storage copy];
-}
 
     
     self.Origination = (ClientLoginIdentityProvider)[properties valueForKey:@"ClientOrigination"];
@@ -5537,33 +5610,33 @@
     self.PublisherId = [properties valueForKey:@"PublisherId"];
     
     if ([properties objectForKey:@"PushNotificationRegistrations"]){
-    NSArray* member_list = [properties objectForKey:@"PushNotificationRegistrations"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientPushNotificationRegistrationModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"PushNotificationRegistrations"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientPushNotificationRegistrationModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.PushNotificationRegistrations = [mutable_storage copy];
     }
-    self.PushNotificationRegistrations = [mutable_storage copy];
-}
 
     
     if ([properties objectForKey:@"Statistics"]){
-    NSArray* member_list = [properties objectForKey:@"Statistics"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientStatisticModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"Statistics"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientStatisticModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.Statistics = [mutable_storage copy];
     }
-    self.Statistics = [mutable_storage copy];
-}
 
     
     if ([properties objectForKey:@"Tags"]){
-    NSArray* member_list = [properties objectForKey:@"Tags"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientTagModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"Tags"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientTagModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.Tags = [mutable_storage copy];
     }
-    self.Tags = [mutable_storage copy];
-}
 
     
     self.TitleId = [properties valueForKey:@"TitleId"];
@@ -5571,17 +5644,83 @@
     self.TotalValueToDateInUSD = [properties valueForKey:@"TotalValueToDateInUSD"];
     
     if ([properties objectForKey:@"ValuesToDate"]){
-    NSArray* member_list = [properties objectForKey:@"ValuesToDate"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientValueToDateModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"ValuesToDate"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientValueToDateModel new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.ValuesToDate = [mutable_storage copy];
     }
-    self.ValuesToDate = [mutable_storage copy];
-}
-
-    
 
     return self;
+}
+
+-(NSDictionary*)getDictionary
+{
+
+    NSArray *boolToString = @[@"false", @"true"];
+
+    NSMutableDictionary* dict = [@{
+        @"PlayerId": self.PlayerId,
+        @"PublisherId": self.PublisherId,
+        @"TitleId": self.TitleId,
+    } mutableCopy];
+
+    if(self.AvatarUrl != nil){
+        [dict setObject:self.AvatarUrl forKey:@"AvatarUrl"];
+    }
+    if(self.BannedUntil != nil){
+        [dict setObject:self.BannedUntil forKey:@"BannedUntil"];
+    }
+    if(self.Created != nil){
+        [dict setObject:self.Created forKey:@"Created"];
+    }
+    if(self.DisplayName != nil){
+        [dict setObject:self.DisplayName forKey:@"DisplayName"];
+    }
+    if(self.LastLogin != nil){
+        [dict setObject:self.LastLogin forKey:@"LastLogin"];
+    }
+    if(self.Origination != nil){
+        [dict setObject:[NSNumber numberWithInt:self.Origination] forKey:@"Origination"];
+    }
+    if(self.TotalValueToDateInUSD != nil){
+        [dict setObject:self.TotalValueToDateInUSD forKey:@"TotalValueToDateInUSD"];
+    }
+    if(self.AdCampaignAttributions != nil){
+        [dict setObject:[self.AdCampaignAttributions convertToNSString] forKey:@"AdCampaignAttributions"];
+    }
+    if(self.ContactEmailAddresses != nil){
+        [dict setObject:[self.ContactEmailAddresses convertToNSString] forKey:@"ContactEmailAddresses"];
+    }
+    if(self.LinkedAccounts != nil){
+        NSMutableArray* linkedAccountsDicts = [[NSMutableArray alloc] init];
+        for (ClientLinkedPlatformAccountModel* linkedAccount in self.LinkedAccounts){
+            [linkedAccountsDicts addObject:[linkedAccount getDictionary]];
+        }
+        [dict setObject:[[NSArray alloc] initWithArray: linkedAccountsDicts] forKey:@"LinkedAccounts"];
+    }
+    if(self.Locations != nil){
+        [dict setObject:[self.Locations convertToNSString] forKey:@"Locations"];
+    }
+    if(self.Memberships != nil){
+        [dict setObject:[self.Memberships convertToNSString] forKey:@"Memberships"];
+    }
+    if(self.PushNotificationRegistrations != nil){
+        [dict setObject:[self.PushNotificationRegistrations convertToNSString] forKey:@"PushNotificationRegistrations"];
+    }
+    if(self.Statistics != nil){
+        [dict setObject:[self.Statistics convertToNSString] forKey:@"Statistics"];
+    }
+    if(self.Tags != nil){
+        [dict setObject:[self.Tags convertToNSString] forKey:@"Tags"];
+    }
+    if(self.ValuesToDate != nil){
+        [dict setObject:[self.ValuesToDate convertToNSString] forKey:@"ValuesToDate"];
+    }
+
+
+    return [[NSDictionary alloc] initWithDictionary:dict];
 }
 @end
 @implementation ClientPlayerProfileViewConstraints
@@ -5626,10 +5765,37 @@
     self.ShowTotalValueToDateInUsd = [[properties valueForKey:@"ShowTotalValueToDateInUsd"] boolValue];
     
     self.ShowValuesToDate = [[properties valueForKey:@"ShowValuesToDate"] boolValue];
-    
 
     return self;
 }
+
+
+-(NSDictionary*)getDictionary
+{
+    NSArray *boolToString = @[@"false", @"true"];
+
+    NSDictionary* dict = @{
+        @"ShowAvatarUrl": boolToString[self.ShowAvatarUrl],
+        @"ShowBannedUntil": boolToString[self.ShowBannedUntil],
+        @"ShowCampaignAttributions": boolToString[self.ShowCampaignAttributions],
+        @"ShowContactEmailAddresses": boolToString[self.ShowContactEmailAddresses],
+        @"ShowCreated": boolToString[self.ShowCreated],
+        @"ShowDisplayName": boolToString[self.ShowDisplayName],
+        @"ShowLastLogin": boolToString[self.ShowLastLogin],
+        @"ShowLinkedAccounts": boolToString[self.ShowLinkedAccounts],
+        @"ShowLocations": boolToString[self.ShowLocations],
+        @"ShowMemberships": boolToString[self.ShowMemberships],
+        @"ShowOrigination": boolToString[self.ShowOrigination],
+        @"ShowPushNotificationRegistrations": boolToString[self.ShowPushNotificationRegistrations],
+        @"ShowStatistics": boolToString[self.ShowStatistics],
+        @"ShowTags": boolToString[self.ShowTags],
+        @"ShowTotalValueToDateInUsd": boolToString[self.ShowTotalValueToDateInUsd],
+        @"ShowValuesToDate": boolToString[self.ShowValuesToDate],
+    };
+
+    return dict;
+}
+
 @end
 @implementation ClientPlayerStatisticVersion
 
@@ -8393,4 +8559,42 @@
 
     return self;
 }
+@end
+
+@implementation NSDictionary (BVJSONString)
+
+-(NSString*) convertToNSString{
+
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:self
+    options:kNilOptions
+    error:&error];
+
+    if (! jsonData) {
+        NSLog(@"%s: error: %@", __func__, error.localizedDescription);
+        return @"{}";
+    } else {
+        return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    } 
+}
+
+@end
+
+@implementation NSArray (BVJSONString)
+
+-(NSString*) convertToNSString{
+
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:self
+    options:kNilOptions
+    error:&error];
+
+    if (! jsonData) {
+        NSLog(@"%s: error: %@", __func__, error.localizedDescription);
+        return @"{}";
+    } else {
+        return [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    } 
+}
+
 @end

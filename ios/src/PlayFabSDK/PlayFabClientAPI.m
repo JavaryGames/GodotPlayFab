@@ -1346,9 +1346,8 @@ return deviceModel;
 -(void) GetLeaderboard:(ClientGetLeaderboardRequest*)request success:(GetLeaderboardCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData
 {
     
-    
-    NSString *jsonString = [request JSONStringWithClass:[ClientGetLeaderboardRequest class]];
-    
+    NSString *jsonString = [[request getDictionary] convertToNSString];
+
     PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;

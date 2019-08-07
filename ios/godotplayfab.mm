@@ -184,7 +184,8 @@ void GodotPlayFab::getPlayerStatistic(const String &name){
     [[PlayFabClientAPI GetInstance] GetPlayerStatistics:request
     success: ^(ClientGetPlayerStatisticsResult* result, NSObject* userData){
         Object *obj = ObjectDB::get_instance(instanceId);
-        NSNumber value = [result.Statistics objectAtIndex:0].Value;
+        ClientStatisticValue *statisticValue = [result.Statistics objectAtIndex:0];
+        NSNumber *value = statisticValue.Value;
         obj->call_deferred(String("playfab_get_player_statistic_succeeded"), name, [value floatValue]);
     }
     failure: ^(PlayFabError* error, NSObject* userData){
@@ -284,19 +285,79 @@ void GodotPlayFab::executeCloudScript(const String &functionName, const String &
     withUserData: nil];
 }
 
-void GodotPlayFab::getLeaderboard(const String &statistic, const int start_position, const int max_results_count){
-    NSLog(@"godotplayfab.mm::getLeaderboard: Not yet implemented");
+void GodotPlayFab::getLeaderboard(const String &statistic, const int startPosition, const int maxResultsCount){//<- IMPLEMENT
+    NSLog(@"godotplayfab.mm::getLeaderboard: Implementing");
+
+    NSDictionary *profileConstraints = @{
+        @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
+    };
+    NSDictionary *properties = @{
+        @"StatisticName": [NSString stringWithCString: statistic.utf8().get_data()],
+        @"StartPosition": [NSNumber numberWithInt: startPosition],
+        @"MaxResultsCount": [NSNumber numberWithInt: maxResultsCount],
+        @"ProfileConstraints": profileConstraints,
+    };
+    ClientGetLeaderboardRequest *request = [[[ClientGetLeaderboardRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] GetLeaderboard:request
+    success: ^(ClientGetLeaderboardResult* result, NSObject* userData){
+        Array playerList = Array();
+        for (ClientPlayerLeaderboardEntry* entry in result.Leaderboard){
+            NSString *jsonEntry = [[entry getDictionary] convertToNSString];
+            playerList.push_back([jsonEntry UTF8String]);
+        }
+        Dictionary resultDict = Dictionary();
+        resultDict["Version"] = [result.Version intValue];
+        resultDict["Leaderboard"] = playerList;
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_leaderboard_succeeded"), statistic, resultDict);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_leaderboard_failed"), [error.errorMessage UTF8String]);
+    }
+    withUserData: nil];
 }
 
-void GodotPlayFab::getFriendLeaderboard(const String &statistic, const int start_position, const int max_results_count){
-    NSLog(@"godotplayfab.mm::getFriendLeaderboard: Not yet implemented");
+void GodotPlayFab::getFriendLeaderboard(const String &statistic, const int startPosition, const int maxResultsCount){//<- IMPLEMENT
+    NSLog(@"godotplayfab.mm::getFriendLeaderboard: Implementing");
+
+    // NSDictionary *profileConstraints = @{
+    //     @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
+    // };
+    // NSDictionary *properties = @{
+    //     @"StatisticName": [NSString stringWithCString: statistic.utf8().get_data()],
+    //     @"StartPosition": [NSNumber numberWithInt: startPosition],
+    //     @"MaxResultsCount": [NSNumber numberWithInt: maxResultsCount],
+    //     @"ProfileConstraints": profileConstraints,
+    // };
+    // ClientGetFriendLeaderboardRequest *request = [[[ClientGetFriendLeaderboardRequest alloc] init] initWithDictionary: properties];
+
+    // [[PlayFabClientAPI GetInstance] GetFriendLeaderboard:request
+    // success: ^(ClientGetLeaderboardResult* result, NSObject* userData){
+    //     Array playerList = Array();
+    //     for (ClientPlayerLeaderboardEntry* entry in result.Leaderboard){
+    //         NSString *jsonEntry = [entry JSONStringWithClass:[ClientPlayerLeaderboardEntry class]];
+    //         playerList.push_back([jsonEntry UTF8String]);
+    //     }
+    //     Dictionary resultDict = Dictionary();
+    //     resultDict["Version"] = [result.Version intValue];
+    //     resultDict["Leaderboard"] = playerList;
+    //     Object *obj = ObjectDB::get_instance(instanceId);
+    //     obj->call_deferred(String("playfab_get_leaderboard_succeeded"), statistic, resultDict);
+    // }
+    // failure: ^(PlayFabError* error, NSObject* userData){
+    //     Object *obj = ObjectDB::get_instance(instanceId);
+    //     obj->call_deferred(String("playfab_get_leaderboard_failed"), [error.errorMessage UTF8String]);
+    // }
+    // withUserData: nil];
 }
 
-void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int start_position, const int max_results_count){
+void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int startPosition, const int maxResultsCount){//<- IMPLEMENT
     NSLog(@"godotplayfab.mm::getLeaderboardAroundPlayer: Not yet implemented");
 }
 
-void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int max_results_count){
+void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int maxResultsCount){//<- IMPLEMENT
     NSLog(@"godotplayfab.mm::getFriendLeaderboardAroundPlayer: Not yet implemented");
 }
 

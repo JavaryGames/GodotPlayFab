@@ -3840,8 +3840,13 @@ typedef enum
 */
 /// </summary>
 @property NSNumber* Version; 
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+ 
+/**/
+-(NSDictionary*)getDictionary;
+
 @end
 
 
@@ -5792,6 +5797,10 @@ typedef enum
 @property NSString* Username; 
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+/**/
+-(NSDictionary*)getDictionary;
+/**/
+-(NSArray*) getPlatformList;
 @end
 
 
@@ -7875,9 +7884,13 @@ typedef enum
 /// Specific value of the user's statistic.
 */
 /// </summary>
-@property NSNumber* StatValue; 
+@property NSNumber* StatValue;
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+/**/
+-(NSDictionary*)getDictionary;
+
 @end
 
 
@@ -8015,9 +8028,13 @@ typedef enum
 /// List of the player's lifetime purchase totals, summed by real-money currency
 */
 /// </summary>
-@property NSArray* ValuesToDate; 
+@property NSArray* ValuesToDate;
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+/**/
+-(NSDictionary*)getDictionary;
+
 @end
 
 
@@ -8135,8 +8152,14 @@ typedef enum
 */
 /// </summary>
 @property bool ShowValuesToDate; 
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+
+/**/
+-(NSDictionary*)getDictionary;
+
+
 @end
 
 
@@ -11340,3 +11363,10 @@ typedef enum
 -(id)initWithDictionary:(NSDictionary*)properties;
 @end
 
+@interface NSDictionary (BVJSONString)
+-(NSString*) convertToNSString;
+@end
+
+@interface NSArray (BVJSONString)
+-(NSString*) convertToNSString;
+@end
