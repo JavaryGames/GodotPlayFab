@@ -365,9 +365,6 @@ void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const Str
     };
     ClientGetLeaderboardAroundPlayerRequest *request = [[[ClientGetLeaderboardAroundPlayerRequest alloc] init] initWithDictionary: properties];
 
-// -(void) GetLeaderboardAroundPlayer:(ClientGetLeaderboardAroundPlayerRequest*)request success:(GetLeaderboardAroundPlayerCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData;
-// typedef void(^GetLeaderboardAroundPlayerCallback)(ClientGetLeaderboardAroundPlayerResult* result, NSObject* userData);
-
     [[PlayFabClientAPI GetInstance] GetLeaderboardAroundPlayer:request
     success: ^(ClientGetLeaderboardAroundPlayerResult* result, NSObject* userData){
         Array playerList = Array();
@@ -389,10 +386,39 @@ void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const Str
 }
 
 void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int maxResultsCount){//<- IMPLEMENT
-    NSLog(@"godotplayfab.mm::getFriendLeaderboardAroundPlayer: Not yet implemented");
+    NSLog(@"godotplayfab.mm::getFriendLeaderboardAroundPlayer: Implementing");
+
+    NSDictionary *profileConstraints = @{
+        @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
+    };
+    NSDictionary *properties = @{
+        @"StatisticName": [NSString stringWithCString: statistic.utf8().get_data()],
+        @"MaxResultsCount": [NSNumber numberWithInt: maxResultsCount],
+        @"ProfileConstraints": profileConstraints,
+    };
+    ClientGetFriendLeaderboardAroundPlayerRequest *request = [[[ClientGetFriendLeaderboardAroundPlayerRequest alloc] init] initWithDictionary: properties];
+
+    [[PlayFabClientAPI GetInstance] GetFriendLeaderboardAroundPlayer:request
+    success: ^(ClientGetFriendLeaderboardAroundPlayerResult* result, NSObject* userData){
+        Array playerList = Array();
+        for (ClientPlayerLeaderboardEntry* entry in result.Leaderboard){
+            NSString *jsonEntry = [[entry getDictionary] convertToNSString];
+            playerList.push_back([jsonEntry UTF8String]);
+        }
+        Dictionary resultDict = Dictionary();
+        resultDict["Version"] = [result.Version intValue];
+        resultDict["Leaderboard"] = playerList;
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_friend_leaderboard_around_player_succeeded"), statistic, resultDict);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_friend_leaderboard_around_player_failed"), statistic, [error.errorMessage UTF8String], -1);
+    }
+    withUserData: nil];
 }
 
-
+ 
 NSDictionary *convertFromDictionary(const Dictionary& dict)
 {
     NSMutableDictionary *result = [NSMutableDictionary new];
