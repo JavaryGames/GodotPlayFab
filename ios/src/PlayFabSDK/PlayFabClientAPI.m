@@ -1174,14 +1174,12 @@ return deviceModel;
 -(void) GetFriendLeaderboard:(ClientGetFriendLeaderboardRequest*)request success:(GetFriendLeaderboardCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData
 {
     
-    
-    NSString *jsonString = [request JSONStringWithClass:[ClientGetFriendLeaderboardRequest class]];
+    NSString *jsonString = [[request getDictionary] convertToNSString];
     
     PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;
         if (!err) {
-            //NSLog(@"connection success response: %@",(NSString*)data);
             NSError *e = nil;
             NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error: &e];
 
@@ -1216,15 +1214,12 @@ return deviceModel;
 }
 -(void) GetFriendLeaderboardAroundPlayer:(ClientGetFriendLeaderboardAroundPlayerRequest*)request success:(GetFriendLeaderboardAroundPlayerCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData
 {
-    
-    
-    NSString *jsonString = [request JSONStringWithClass:[ClientGetFriendLeaderboardAroundPlayerRequest class]];
-    
+    NSString *jsonString = [[request getDictionary] convertToNSString];
+
     PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;
         if (!err) {
-            //NSLog(@"connection success response: %@",(NSString*)data);
             NSError *e = nil;
             NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error: &e];
 
@@ -1263,11 +1258,10 @@ return deviceModel;
     
     NSString *jsonString = [request JSONStringWithClass:[ClientGetFriendsListRequest class]];
     
-    PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
+    PlayFabConnection * connection = [PlayFabConnection new];
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;
         if (!err) {
-            //NSLog(@"connection success response: %@",(NSString*)data);
             NSError *e = nil;
             NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error: &e];
 
@@ -1310,7 +1304,6 @@ return deviceModel;
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;
         if (!err) {
-            //NSLog(@"connection success response: %@",(NSString*)data);
             NSError *e = nil;
             NSDictionary *JSON = [NSJSONSerialization JSONObjectWithData:data options:0 error: &e];
 
@@ -1388,7 +1381,6 @@ return deviceModel;
 -(void) GetLeaderboardAroundCharacter:(ClientGetLeaderboardAroundCharacterRequest*)request success:(GetLeaderboardAroundCharacterCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData
 {
     
-    
     NSString *jsonString = [request JSONStringWithClass:[ClientGetLeaderboardAroundCharacterRequest class]];
     
     PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
@@ -1430,10 +1422,8 @@ return deviceModel;
 }
 -(void) GetLeaderboardAroundPlayer:(ClientGetLeaderboardAroundPlayerRequest*)request success:(GetLeaderboardAroundPlayerCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData
 {
-    
-    
-    NSString *jsonString = [request JSONStringWithClass:[ClientGetLeaderboardAroundPlayerRequest class]];
-    
+    NSString *jsonString = [[request getDictionary] convertToNSString];
+
     PlayFabConnection * connection = [PlayFabConnection new];//[[MyConnection alloc]initWithRequest:req];
     [connection setCompletionBlock:^(id obj, NSError *err) {
         NSData * data = obj;

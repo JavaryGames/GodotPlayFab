@@ -3463,9 +3463,14 @@ typedef enum
 /// Xbox token if Xbox friends should be included. Requires Xbox be configured on PlayFab.
 */
 /// </summary>
-@property NSString* XboxToken; 
+@property NSString* XboxToken;
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+ 
+/**/
+-(NSDictionary*)getDictionary;
+
 @end
 
 
@@ -3563,8 +3568,13 @@ typedef enum
 */
 /// </summary>
 @property NSString* XboxToken; 
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+ 
+/**/
+-(NSDictionary*)getDictionary;
+
 @end
 
 
@@ -3718,9 +3728,14 @@ typedef enum
 /// The version of the leaderboard to get.
 */
 /// </summary>
-@property NSNumber* Version; 
+@property NSNumber* Version;
+
 /**/
 -(id)initWithDictionary:(NSDictionary*)properties;
+ 
+/**/
+-(NSDictionary*)getDictionary;
+
 @end
 
 

@@ -1816,6 +1816,36 @@
 
     return self;
 }
+
+
+-(NSDictionary*)getDictionary
+{
+    NSArray *boolToString = @[@"false", @"true"];
+
+    NSMutableDictionary* dict = [@{
+        @"MaxResultsCount": self.MaxResultsCount,
+        @"ProfileConstraints": [self.ProfileConstraints getDictionary],
+        @"StatisticName": self.StatisticName,
+    } mutableCopy];
+
+    if (self.PlayFabId != nil){
+        [dict setObject:self.PlayFabId forKey:@"PlayFabId"];
+    }
+    if (self.IncludeFacebookFriends != nil){
+        [dict setObject:boolToString[self.IncludeFacebookFriends] forKey:@"IncludeFacebookFriends"];
+    }
+    if (self.IncludeSteamFriends != nil){
+        [dict setObject:boolToString[self.IncludeSteamFriends] forKey:@"IncludeSteamFriends"];
+    }
+    if (self.Version != nil){
+        [dict setObject:self.Version forKey:@"Version"];
+    }
+    if (self.XboxToken != nil){
+        [dict setObject:self.XboxToken forKey:@"XboxToken"];
+    }
+    return [[NSDictionary alloc] initWithDictionary:dict];
+}
+
 @end
 @implementation ClientGetFriendLeaderboardAroundPlayerResult
 
@@ -1856,7 +1886,6 @@
         return nil;
     }
 
-    
     self.IncludeFacebookFriends = [[properties valueForKey:@"IncludeFacebookFriends"] boolValue];
     
     self.IncludeSteamFriends = [[properties valueForKey:@"IncludeSteamFriends"] boolValue];
@@ -1872,10 +1901,38 @@
     self.Version = [properties valueForKey:@"Version"];
     
     self.XboxToken = [properties valueForKey:@"XboxToken"];
-    
 
     return self;
 }
+
+-(NSDictionary*)getDictionary
+{
+
+    NSArray *boolToString = @[@"false", @"true"];
+
+    NSMutableDictionary* dict = [@{
+        @"MaxResultsCount": self.MaxResultsCount,
+        @"ProfileConstraints": [self.ProfileConstraints getDictionary],
+        @"StartPosition": self.StartPosition,
+        @"StatisticName": self.StatisticName,
+    } mutableCopy];
+
+    if (self.IncludeFacebookFriends != nil){
+        [dict setObject:boolToString[self.IncludeFacebookFriends] forKey:@"IncludeFacebookFriends"];
+    }
+    if (self.IncludeSteamFriends != nil){
+        [dict setObject:boolToString[self.IncludeSteamFriends] forKey:@"IncludeSteamFriends"];
+    }
+    if (self.Version != nil){
+        [dict setObject:self.Version forKey:@"Version"];
+    }
+    if (self.XboxToken != nil){
+        [dict setObject:self.XboxToken forKey:@"XboxToken"];
+    }
+
+    return [[NSDictionary alloc] initWithDictionary:dict];
+}
+
 @end
 @implementation ClientGetFriendsListRequest
 
@@ -1994,9 +2051,28 @@
     
     self.Version = [properties valueForKey:@"Version"];
     
-
     return self;
 }
+
+-(NSDictionary*)getDictionary
+{
+
+    NSMutableDictionary* dict = [@{
+        @"MaxResultsCount": self.MaxResultsCount,
+        @"ProfileConstraints": [self.ProfileConstraints getDictionary],
+        @"StatisticName": self.StatisticName,
+    } mutableCopy];
+
+    if (self.Version != nil){
+        [dict setObject:self.Version forKey:@"Version"];
+    }
+    if (self.PlayFabId != nil){
+        [dict setObject:self.PlayFabId forKey:@"PlayFabId"];
+    }
+
+    return [[NSDictionary alloc] initWithDictionary:dict];
+}
+
 @end
 @implementation ClientGetLeaderboardAroundPlayerResult
 
@@ -2010,19 +2086,17 @@
 
     
     if ([properties objectForKey:@"Leaderboard"]){
-    NSArray* member_list = [properties objectForKey:@"Leaderboard"];
-    NSMutableArray* mutable_storage = [NSMutableArray new];
-    for(int i=0;i<[member_list count];i++){
-        [mutable_storage addObject:[[ClientPlayerLeaderboardEntry new] initWithDictionary:[member_list objectAtIndex:i]]];
+        NSArray* member_list = [properties objectForKey:@"Leaderboard"];
+        NSMutableArray* mutable_storage = [NSMutableArray new];
+        for(int i=0;i<[member_list count];i++){
+            [mutable_storage addObject:[[ClientPlayerLeaderboardEntry new] initWithDictionary:[member_list objectAtIndex:i]]];
+        }
+        self.Leaderboard = [mutable_storage copy];
     }
-    self.Leaderboard = [mutable_storage copy];
-}
 
-    
     self.NextReset = [[PlayFabBaseModel timestampFormatter] dateFromString:[properties valueForKey:@"NextReset"]];
     
     self.Version = [properties valueForKey:@"Version"];
-    
 
     return self;
 }
@@ -2108,7 +2182,7 @@
         [dict setObject:self.Version forKey:@"Version"];
     }
 
-    return [[NSDictionary alloc] initWithDictionary:dict];;
+    return [[NSDictionary alloc] initWithDictionary:dict];
 }
 
 @end
@@ -5772,6 +5846,8 @@
 
 -(NSDictionary*)getDictionary
 {
+
+
     NSArray *boolToString = @[@"false", @"true"];
 
     NSDictionary* dict = @{
@@ -5792,6 +5868,7 @@
         @"ShowTotalValueToDateInUsd": boolToString[self.ShowTotalValueToDateInUsd],
         @"ShowValuesToDate": boolToString[self.ShowValuesToDate],
     };
+
 
     return dict;
 }

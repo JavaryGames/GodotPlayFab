@@ -286,7 +286,6 @@ void GodotPlayFab::executeCloudScript(const String &functionName, const String &
 }
 
 void GodotPlayFab::getLeaderboard(const String &statistic, const int startPosition, const int maxResultsCount){//<- IMPLEMENT
-    NSLog(@"godotplayfab.mm::getLeaderboard: Implementing");
 
     NSDictionary *profileConstraints = @{
         @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
@@ -314,7 +313,7 @@ void GodotPlayFab::getLeaderboard(const String &statistic, const int startPositi
     }
     failure: ^(PlayFabError* error, NSObject* userData){
         Object *obj = ObjectDB::get_instance(instanceId);
-        obj->call_deferred(String("playfab_get_leaderboard_failed"), [error.errorMessage UTF8String]);
+        obj->call_deferred(String("playfab_get_leaderboard_failed"), statistic, [error.errorMessage UTF8String], -1);
     }
     withUserData: nil];
 }
@@ -322,39 +321,71 @@ void GodotPlayFab::getLeaderboard(const String &statistic, const int startPositi
 void GodotPlayFab::getFriendLeaderboard(const String &statistic, const int startPosition, const int maxResultsCount){//<- IMPLEMENT
     NSLog(@"godotplayfab.mm::getFriendLeaderboard: Implementing");
 
-    // NSDictionary *profileConstraints = @{
-    //     @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
-    // };
-    // NSDictionary *properties = @{
-    //     @"StatisticName": [NSString stringWithCString: statistic.utf8().get_data()],
-    //     @"StartPosition": [NSNumber numberWithInt: startPosition],
-    //     @"MaxResultsCount": [NSNumber numberWithInt: maxResultsCount],
-    //     @"ProfileConstraints": profileConstraints,
-    // };
-    // ClientGetFriendLeaderboardRequest *request = [[[ClientGetFriendLeaderboardRequest alloc] init] initWithDictionary: properties];
+    NSDictionary *profileConstraints = @{
+        @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
+    };
+    NSDictionary *properties = @{
+        @"StatisticName": [NSString stringWithCString: statistic.utf8().get_data()],
+        @"StartPosition": [NSNumber numberWithInt: startPosition],
+        @"MaxResultsCount": [NSNumber numberWithInt: maxResultsCount],
+        @"ProfileConstraints": profileConstraints,
+    };
+    ClientGetFriendLeaderboardRequest *request = [[[ClientGetFriendLeaderboardRequest alloc] init] initWithDictionary: properties];
 
-    // [[PlayFabClientAPI GetInstance] GetFriendLeaderboard:request
-    // success: ^(ClientGetLeaderboardResult* result, NSObject* userData){
-    //     Array playerList = Array();
-    //     for (ClientPlayerLeaderboardEntry* entry in result.Leaderboard){
-    //         NSString *jsonEntry = [entry JSONStringWithClass:[ClientPlayerLeaderboardEntry class]];
-    //         playerList.push_back([jsonEntry UTF8String]);
-    //     }
-    //     Dictionary resultDict = Dictionary();
-    //     resultDict["Version"] = [result.Version intValue];
-    //     resultDict["Leaderboard"] = playerList;
-    //     Object *obj = ObjectDB::get_instance(instanceId);
-    //     obj->call_deferred(String("playfab_get_leaderboard_succeeded"), statistic, resultDict);
-    // }
-    // failure: ^(PlayFabError* error, NSObject* userData){
-    //     Object *obj = ObjectDB::get_instance(instanceId);
-    //     obj->call_deferred(String("playfab_get_leaderboard_failed"), [error.errorMessage UTF8String]);
-    // }
-    // withUserData: nil];
+    [[PlayFabClientAPI GetInstance] GetFriendLeaderboard:request
+    success: ^(ClientGetLeaderboardResult* result, NSObject* userData){
+        Array playerList = Array();
+        for (ClientPlayerLeaderboardEntry* entry in result.Leaderboard){
+            NSString *jsonEntry = [[entry getDictionary] convertToNSString];
+            playerList.push_back([jsonEntry UTF8String]);
+        }
+        Dictionary resultDict = Dictionary();
+        resultDict["Version"] = [result.Version intValue];
+        resultDict["Leaderboard"] = playerList;
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_friend_leaderboard_succeeded"), statistic, resultDict);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_friend_leaderboard_failed"), statistic, [error.errorMessage UTF8String], -1);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::getLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int startPosition, const int maxResultsCount){//<- IMPLEMENT
-    NSLog(@"godotplayfab.mm::getLeaderboardAroundPlayer: Not yet implemented");
+
+    NSDictionary *profileConstraints = @{
+        @"ShowLinkedAccounts": [NSNumber numberWithBool: true],
+    };
+    NSDictionary *properties = @{
+        @"StatisticName": [NSString stringWithCString: statistic.utf8().get_data()],
+        @"StartPosition": [NSNumber numberWithInt: startPosition],
+        @"MaxResultsCount": [NSNumber numberWithInt: maxResultsCount],
+        @"ProfileConstraints": profileConstraints,
+    };
+    ClientGetLeaderboardAroundPlayerRequest *request = [[[ClientGetLeaderboardAroundPlayerRequest alloc] init] initWithDictionary: properties];
+
+// -(void) GetLeaderboardAroundPlayer:(ClientGetLeaderboardAroundPlayerRequest*)request success:(GetLeaderboardAroundPlayerCallback)callback failure:(ErrorCallback)errorCallback withUserData:(NSObject*)userData;
+// typedef void(^GetLeaderboardAroundPlayerCallback)(ClientGetLeaderboardAroundPlayerResult* result, NSObject* userData);
+
+    [[PlayFabClientAPI GetInstance] GetLeaderboardAroundPlayer:request
+    success: ^(ClientGetLeaderboardAroundPlayerResult* result, NSObject* userData){
+        Array playerList = Array();
+        for (ClientPlayerLeaderboardEntry* entry in result.Leaderboard){
+            NSString *jsonEntry = [[entry getDictionary] convertToNSString];
+            playerList.push_back([jsonEntry UTF8String]);
+        }
+        Dictionary resultDict = Dictionary();
+        resultDict["Version"] = [result.Version intValue];
+        resultDict["Leaderboard"] = playerList;
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_leaderboard_around_player_succeeded"), statistic, resultDict);
+    }
+    failure: ^(PlayFabError* error, NSObject* userData){
+        Object *obj = ObjectDB::get_instance(instanceId);
+        obj->call_deferred(String("playfab_get_leaderboard_around_player_failed"), statistic, [error.errorMessage UTF8String], -1);
+    }
+    withUserData: nil];
 }
 
 void GodotPlayFab::getFriendLeaderboardAroundPlayer(const String &playfabID, const String &statistic, const int maxResultsCount){//<- IMPLEMENT
