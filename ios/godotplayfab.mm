@@ -97,6 +97,10 @@ void GodotPlayFab::deleteUserData(const String &key){
 }
 
 void GodotPlayFab::getUserData(const String &key, const String &playfabID, const bool readOnly){
+    NSLog(@"GodotPlayFab::getUserData with key %@ and playfabID %@", 
+        [NSString stringWithCString:key.utf8().get_data() encoding: NSUTF8StringEncoding], 
+        [NSString stringWithCString:playfabID.utf8().get_data() encoding: NSUTF8StringEncoding]
+    );
     NSArray *keys = @[
         [NSString stringWithCString: key.utf8().get_data()]
     ];
@@ -110,28 +114,46 @@ void GodotPlayFab::getUserData(const String &key, const String &playfabID, const
     void (^failureCallback)(PlayFabError* result, NSObject* userData);
 
     successCallback = ^(ClientGetUserDataResult* result, NSObject* userData){
-        String value;
-        NSString *nsKey = [NSString stringWithCString: key.utf8().get_data()];
-        if ([result.Data objectForKey:nsKey]){
-            value = [[result.Data objectForKey:nsKey] UTF8String];
-            Object *obj = ObjectDB::get_instance(instanceId);
-            obj->call_deferred(String("playfab_get_user_data_succeeded"), playfabID, key, value, [result.DataVersion UTF8String]);
+        NSLog(@"GodotPlayFab::successCallback with key %@ and playfabID %@", 
+        properties[@"Keys"][0], 
+        properties[@"PlayFabId"]
+        );
+
+        Object *obj = ObjectDB::get_instance(instanceId);
+        String playfabIdString = [[properties[@"PlayFabId"] stringValue] UTF8String];
+        String keyString = [[properties[@"Keys"][0] stringValue] UTF8String];
+        if ([result.Data objectForKey:properties[@"Keys"][0]]){
+            ClientUserDataRecord* record = [result.Data objectForKey:properties[@"Keys"][0]];
+            String value = [[record Value] UTF8String];
+            String dataVersionString = [[result.DataVersion stringValue] UTF8String];
+            obj->call_deferred(String("playfab_get_user_data_succeeded"), playfabIdString, 
+            keyString, value, dataVersionString);
         }else{
-            Object *obj = ObjectDB::get_instance(instanceId);
-            obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, "Key not found", 1);
+            obj->call_deferred(String("playfab_get_user_data_failed"), playfabIdString, 
+            keyString, "Key not found", 1);
         }
     };
     failureCallback = ^(PlayFabError* error, NSObject* userData){
+        NSLog(@"GodotPlayFab::failureCallback with key %@ and playfabID %@", 
+        properties[@"Keys"][0], 
+        properties[@"PlayFabId"]
+        );
+
         Object *obj = ObjectDB::get_instance(instanceId);
-        obj->call_deferred(String("playfab_get_user_data_failed"), playfabID, key, [error.errorMessage UTF8String], -1);
+        String playfabIdString = [[properties[@"PlayFabId"] stringValue] UTF8String];
+        String keyString = [[properties[@"Keys"][0] stringValue] UTF8String];
+        obj->call_deferred(String("playfab_get_user_data_failed"), playfabIdString, 
+        keyString, [error.errorMessage UTF8String], -1);
     };
 
     if (!readOnly){
+        NSLog(@"GodotPlayFab::GetUserData !readOnly");
         [[PlayFabClientAPI GetInstance] GetUserData:request
         success: successCallback
         failure: failureCallback
         withUserData: nil];
     }else{
+        NSLog(@"GodotPlayFab::GetUserData readOnly");
         [[PlayFabClientAPI GetInstance] GetUserReadOnlyData:request
         success: successCallback
         failure: failureCallback
