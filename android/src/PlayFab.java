@@ -34,6 +34,7 @@ import static com.playfab.PlayFabClientAPI.LoginWithAndroidDeviceIDAsync;
 import static com.playfab.PlayFabClientAPI.LoginWithFacebookAsync;
 import static com.playfab.PlayFabClientAPI.UpdatePlayerStatisticsAsync;
 import static com.playfab.PlayFabClientAPI.UpdateUserDataAsync;
+import static com.playfab.PlayFabClientAPI.UpdateUserTitleDisplayNameAsync;
 
 public class PlayFab extends Godot.SingletonBase {
     private static boolean _running = true;
@@ -50,7 +51,7 @@ public class PlayFab extends Godot.SingletonBase {
 
     public PlayFab(Activity p_activity) {
         registerClass("PlayFab", new String[]{
-                "login", "init", "setUserData", "getUserData", "deleteUserData", "getPlayerStatistic", "setPlayerStatistic",
+                "login", "init", "setTitleDisplayName", "setUserData", "getUserData", "deleteUserData", "getPlayerStatistic", "setPlayerStatistic",
                 "linkAndroidDeviceId", "linkFacebookAccount", "loginWithFacebook", "loginWithAndroidDeviceId", "isLoggedIn",
                 "executeCloudScript", "getPlayFabID", "getAccountInfo",
                 "getLeaderboard", "getFriendLeaderboard", "getLeaderboardAroundPlayer", "getFriendLeaderboardAroundPlayer",
@@ -115,6 +116,18 @@ public class PlayFab extends Godot.SingletonBase {
                 for (String msg : pair.getValue())
                     errorMessage += "\n" + pair.getKey() + ": " + msg;
         return errorMessage;
+    }
+
+    public void setTitleDisplayName(final String name) {
+        UpdateUserTitleDisplayNameRequest request = new UpdateUserTitleDisplayNameRequest();
+        request.DisplayName = name;
+        treatResult(UpdateUserTitleDisplayNameAsync(request), "playfab_set_display_name_failed", new Object[]{}, new ResultRunnable<UpdateUserTitleDisplayNameResult>() {
+            @Override
+            public void run(UpdateUserTitleDisplayNameResult result) {
+                GodotLib.calldeferred(instanceId, "playfab_set_display_name_succeeded", new Object[]{});
+            }
+
+        });
     }
 
     public void setUserData(final String key, final String value) {
@@ -318,6 +331,7 @@ public class PlayFab extends Godot.SingletonBase {
         request.StartPosition = startPosition;
         request.MaxResultsCount = maxResultsCount;
         request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowDisplayName = true;
         request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetLeaderboardAsync(request), "playfab_get_leaderboard_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardResult>() {
@@ -334,6 +348,7 @@ public class PlayFab extends Godot.SingletonBase {
         request.StartPosition = startPosition;
         request.MaxResultsCount = maxResultsCount;
         request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowDisplayName = true;
         request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetFriendLeaderboardAsync(request), "playfab_get_friend_leaderboard_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardResult>() {
@@ -350,6 +365,7 @@ public class PlayFab extends Godot.SingletonBase {
         request.StatisticName = statistic;
         request.MaxResultsCount = maxResultsCount;
         request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowDisplayName = true;
         request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetLeaderboardAroundPlayerAsync(request), "playfab_get_leaderboard_around_player_failed", new Object[]{statistic}, new ResultRunnable<GetLeaderboardAroundPlayerResult>() {
@@ -366,6 +382,7 @@ public class PlayFab extends Godot.SingletonBase {
         request.StatisticName = statistic;
         request.MaxResultsCount = maxResultsCount;
         request.ProfileConstraints = new PlayerProfileViewConstraints();
+        request.ProfileConstraints.ShowDisplayName = true;
         request.ProfileConstraints.ShowLinkedAccounts = true;
 
         treatResult(GetFriendLeaderboardAroundPlayerAsync(request), "playfab_get_friend_leaderboard_around_player_failed", new Object[]{statistic}, new ResultRunnable<GetFriendLeaderboardAroundPlayerResult>() {
