@@ -4,6 +4,7 @@ def can_build(env, platform):
 
 def configure(env):
     if (env['platform'] == 'android'):
+        return
         env.android_add_dependency("implementation 'com.playfab:client-sdk:0.81.181204'")
         env.android_add_default_config("multiDexEnabled true")
         env.android_add_dependency("implementation 'com.android.support:multidex:1.0.3'")
